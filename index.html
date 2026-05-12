@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SimuLab — Virtual Embedded Systems Simulator</title>
+  <meta name="description" content="Simulate Arduino, ESP32, Raspberry Pi, and sensors directly in your browser. Build, test, and deploy embedded systems without hardware." />
+
+  <!-- ✏️ Stylesheets — add/remove as needed -->
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+  <link rel="stylesheet" href="css/hero.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="css/sections.css" />
+</head>
+<body>
+
+<!-- Noise texture overlay -->
+<div class="noise-overlay"></div>
+
+<!-- ============================================================
+     NAVBAR
+     ============================================================ -->
+<nav class="navbar">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">⚡</div>
+    <span class="nav-logo-text">Simu<span>Lab</span></span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#features" class="active">Features</a></li>
+    <li><a href="#simulator">Simulator</a></li>
+    <li><a href="#sensors">Sensors</a></li>
+    <li><a href="#docs">Docs</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+
+  <div class="nav-actions">
+    <a href="#docs" class="btn-ghost">Documentation</a>
+    <a href="#waitlist" class="btn-primary">Get Early Access</a>
+  </div>
+
+  <div class="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section id="hero" class="hero">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+  </div>
+
+  <div class="container">
+    <div class="hero-inner">
+      <!-- Left -->
+      <div class="hero-content">
+        <div class="hero-tag">
+          <span class="badge">
+            <span class="dot"></span>
+            Live simulator — No hardware needed
+          </span>
+        </div>
+
+        <h1 class="hero-title">
+          <span class="line-muted">Simulate</span> your<br>
+          embedded <span class="gradient-text">systems.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Build, test, and debug Arduino, ESP32, Raspberry Pi circuits with
+          real-time sensor simulation — all inside your browser. No breadboard required.
+        </p>
+
+        <form class="hero-form waitlist-form" id="waitlist">
+          <input class="hero-input" type="email" placeholder="Your college email" required />
+          <button type="submit" class="btn-primary">Get Early Access</button>
+        </form>
+
+        <div class="hero-stats">
+          <div class="hero-stat-item">
+            <div class="hero-stat-value">60+</div>
+            <div class="hero-stat-label">Sensors Supported</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-value">8</div>
+            <div class="hero-stat-label">Board Types</div>
+          </div>
+          <div class="hero-stat-item">
+            <div class="hero-stat-value">0ms</div>
+            <div class="hero-stat-label">Setup Time</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right — Floating cubes + chip card -->
+      <div class="hero-visual">
+        <div class="hero-cube">🔲</div>
+        <div class="hero-cube">⬛</div>
+        <div class="hero-cube">🔳</div>
+        <div class="hero-cube">▪️</div>
+        <div class="hero-cube">◾</div>
+
+        <div class="hero-chip-card">
+          <div class="chip-header">
+            <span class="chip-title">ESP32 — GPIO Live</span>
+            <span class="chip-status"></span>
+          </div>
+          <div class="chip-pins">
+            <div class="chip-pin active-high">3V3</div>
+            <div class="chip-pin active-high">EN</div>
+            <div class="chip-pin active-med">D34</div>
+            <div class="chip-pin active-med">D35</div>
+            <div class="chip-pin active-low">D32</div>
+            <div class="chip-pin active-med">D33</div>
+            <div class="chip-pin active-high">D25</div>
+            <div class="chip-pin active-low">D26</div>
+            <div class="chip-pin active-med">D27</div>
+            <div class="chip-pin active-high">D14</div>
+            <div class="chip-pin active-low">D12</div>
+            <div class="chip-pin active-high">GND</div>
+          </div>
+          <div class="chip-meta">
+            Freq: <span>240 MHz</span> &nbsp;|&nbsp; Cores: <span>2</span> &nbsp;|&nbsp; RAM: <span>320KB</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trusted bar -->
+    <div class="hero-trusted">
+      <div class="trusted-label">Used by students at leading engineering colleges</div>
+      <div class="trusted-logos">
+        <span class="trusted-logo">IIT Madras</span>
+        <span class="trusted-logo">NIT Trichy</span>
+        <span class="trusted-logo">VIT</span>
+        <span class="trusted-logo">SRM</span>
+        <span class="trusted-logo">PSG Tech</span>
+        <span class="trusted-logo">Amrita</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SIMULATOR DASHBOARD
+     ============================================================ -->
+<section id="simulator" class="simulator-section">
+  <div class="container">
+    <div class="section-header" data-fade>
+      <span class="section-label">Live Platform Preview</span>
+      <h2 class="section-title">
+        Everything you need to<br>
+        <span class="gradient-text">build and test</span> circuits
+      </h2>
+      <p class="section-subtitle">
+        Harness the power of real-time simulation — making embedded systems
+        development intuitive and effective for all skill levels.
+      </p>
+    </div>
+
+    <!-- Dashboard Window -->
+    <div class="dashboard-window" data-fade>
+      <div class="window-titlebar">
+        <div class="window-dots">
+          <div class="window-dot red"></div>
+          <div class="window-dot yellow"></div>
+          <div class="window-dot green"></div>
+        </div>
+        <span class="window-title">SimuLab — Project Dashboard</span>
+        <div class="window-actions">
+          <button class="window-action-btn">▶ Run</button>
+          <button class="window-action-btn">⚙ Config</button>
+        </div>
+      </div>
+
+      <div class="dashboard-body">
+        <!-- Sidebar -->
+        <aside class="dash-sidebar">
+          <span class="sidebar-label">Navigation</span>
+          <div class="sidebar-item active">
+            <span class="sidebar-item-icon">📊</span> Overview
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">🔌</span> Sensors
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">⚡</span> GPIO Monitor
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">📡</span> Serial Monitor
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">📈</span> Data Plotter
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">🗂️</span> Register
+          </div>
+          <span class="sidebar-label" style="margin-top:12px">Active Board</span>
+          <div class="sidebar-item" id="board-esp32" onclick="switchBoard('ESP32 DevKit v1','esp32')">
+            <span class="sidebar-item-icon">🟣</span> ESP32 DevKit
+          </div>
+          <div class="sidebar-item" id="board-uno" onclick="switchBoard('Arduino Uno R3','uno')">
+            <span class="sidebar-item-icon">🔵</span> Arduino Uno
+          </div>
+          <div class="sidebar-item" id="board-nano" onclick="switchBoard('Arduino Nano','nano')">
+            <span class="sidebar-item-icon">🔵</span> Arduino Nano
+          </div>
+          <div class="sidebar-item" id="board-esp8266" onclick="switchBoard('ESP8266 NodeMCU','esp8266')">
+            <span class="sidebar-item-icon">🟤</span> ESP8266
+          </div>
+          <div class="sidebar-item" id="board-mega" onclick="switchBoard('Arduino Mega 2560','mega')">
+            <span class="sidebar-item-icon">🔵</span> Arduino Mega
+          </div>
+          <div class="sidebar-item" id="board-pico" onclick="switchBoard('Raspberry Pi Pico','pico')">
+            <span class="sidebar-item-icon">🟢</span> RPi Pico
+          </div>
+          <div class="sidebar-item" id="board-stm32" onclick="switchBoard('STM32 BluePill','stm32')">
+            <span class="sidebar-item-icon">⚫</span> STM32
+          </div>
+          <div class="sidebar-item" id="board-attiny" onclick="switchBoard('ATtiny85','attiny')">
+            <span class="sidebar-item-icon">🔵</span> ATtiny85
+          </div>
+          <span class="sidebar-label" style="margin-top:12px">Projects</span>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">🌡️</span> Temp Monitor
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">🚪</span> Smart Door
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">💡</span> LED Matrix
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">🌿</span> Plant Watering
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">🏠</span> Home Automation
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">🚗</span> Line Follower
+          </div>
+          <div class="sidebar-item">
+            <span class="sidebar-item-icon">☁️</span> Weather Station
+          </div>
+        </aside>
+
+        <!-- Main Panel -->
+        <main class="dash-main">
+          <div class="dash-header">
+            <div class="dash-title-group">
+              <h2>System Overview</h2>
+              <p>ESP32 DevKit v1 — simulab.local</p>
+            </div>
+            <div class="dash-toolbar">
+              <div class="dash-search">🔍 Search sensors...</div>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">
+                CPU Usage
+                <span style="font-size:10px;color:var(--color-accent-green)">●LIVE</span>
+              </div>
+              <div class="stat-value">
+                <span id="sensor-cpu" class="live-stat" data-base="34.2" data-variance="8" data-suffix="%">34.2%</span>
+              </div>
+              <div style="margin-top:8px;">
+                <svg viewBox="0 0 120 40" class="mini-chart" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polyline class="chart-line" points="0,35 20,20 40,28 60,15 80,22 100,12 120,18"
+                    stroke="rgba(124,58,237,0.6)" stroke-width="1.5" fill="none"/>
+                  <polyline points="0,35 20,20 40,28 60,15 80,22 100,12 120,18 120,40 0,40"
+                    fill="url(#grad1)" opacity="0.3"/>
+                  <defs>
+                    <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#7c3aed"/>
+                      <stop offset="100%" stop-color="transparent"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">
+                Heap Memory
+                <span style="font-size:10px;color:var(--color-accent-green)">●LIVE</span>
+              </div>
+              <div class="stat-value">
+                <span id="sensor-heap" class="live-stat" data-base="218" data-variance="12" data-suffix="KB">218KB</span>
+              </div>
+              <div style="margin-top:8px;">
+                <svg viewBox="0 0 120 40" class="mini-chart" fill="none">
+                  <polyline class="chart-line" points="0,30 20,18 40,24 60,10 80,20 100,14 120,8"
+                    stroke="rgba(6,182,212,0.6)" stroke-width="1.5" fill="none"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">
+                Active Sensors
+                <span style="font-size:10px;color:var(--color-accent-green)">●LIVE</span>
+              </div>
+              <div class="stat-value" style="color:var(--color-accent-green)">10/12</div>
+              <div style="margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--color-text-dim)">
+                2 offline · 0 errors
+              </div>
+            </div>
+          </div>
+
+          <!-- Sensor rows -->
+          <div class="sensor-panel">
+            <div class="sensor-panel-header">
+              <span>Connected Sensors — <span id="board-name" style="color:var(--color-primary-light)">ESP32 DevKit v1</span></span>
+              <span style="font-size:11px;color:var(--color-text-muted)">Auto-refresh: 2.5s</span>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap temp">🌡️</div>
+              <div class="sensor-info">
+                <div class="sensor-name">DHT22 — Temperature</div>
+                <div class="sensor-pin">PIN D4 · I2C · 0x44</div>
+              </div>
+              <div class="sensor-value" id="sensor-temp">26.3°C</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap humid">💧</div>
+              <div class="sensor-info">
+                <div class="sensor-name">DHT22 — Humidity</div>
+                <div class="sensor-pin">PIN D4 · I2C · 0x44</div>
+              </div>
+              <div class="sensor-value" id="sensor-humid">64.1%</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap light">☀️</div>
+              <div class="sensor-info">
+                <div class="sensor-name">LDR — Ambient Light</div>
+                <div class="sensor-pin">PIN A0 · Analog</div>
+              </div>
+              <div class="sensor-value" id="sensor-light">512 lx</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap pir">👁️</div>
+              <div class="sensor-info">
+                <div class="sensor-name">HC-SR501 — PIR Motion</div>
+                <div class="sensor-pin">PIN D2 · Digital</div>
+              </div>
+              <div class="sensor-value" id="sensor-pir">IDLE</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap sound">🔊</div>
+              <div class="sensor-info">
+                <div class="sensor-name">KY-037 — Sound Level</div>
+                <div class="sensor-pin">PIN A1 · Analog</div>
+              </div>
+              <div class="sensor-value" id="sensor-sound">48 dB</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap" style="background:rgba(124,58,237,0.12)">📏</div>
+              <div class="sensor-info">
+                <div class="sensor-name">HC-SR04 — Ultrasonic Distance</div>
+                <div class="sensor-pin">TRIG D6 · ECHO D7 · Digital</div>
+              </div>
+              <div class="sensor-value" id="sensor-ultra">23.4 cm</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap" style="background:rgba(239,68,68,0.12)">🔥</div>
+              <div class="sensor-info">
+                <div class="sensor-name">MQ-2 — Gas / Smoke</div>
+                <div class="sensor-pin">PIN A2 · Analog</div>
+              </div>
+              <div class="sensor-value" id="sensor-gas">182 ppm</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap" style="background:rgba(16,185,129,0.12)">🌱</div>
+              <div class="sensor-info">
+                <div class="sensor-name">YL-69 — Soil Moisture</div>
+                <div class="sensor-pin">PIN A3 · Analog</div>
+              </div>
+              <div class="sensor-value" id="sensor-soil">62%</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap" style="background:rgba(6,182,212,0.12)">🧭</div>
+              <div class="sensor-info">
+                <div class="sensor-name">MPU6050 — Accelerometer/Gyro</div>
+                <div class="sensor-pin">SDA D21 · SCL D22 · I2C · 0x68</div>
+              </div>
+              <div class="sensor-value" id="sensor-imu">X:0.02 g</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap" style="background:rgba(245,158,11,0.12)">☁️</div>
+              <div class="sensor-info">
+                <div class="sensor-name">BMP180 — Barometric Pressure</div>
+                <div class="sensor-pin">SDA D21 · SCL D22 · I2C · 0x77</div>
+              </div>
+              <div class="sensor-value" id="sensor-baro">1013 hPa</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap" style="background:rgba(236,72,153,0.12)">📡</div>
+              <div class="sensor-info">
+                <div class="sensor-name">TCRT5000 — IR Obstacle</div>
+                <div class="sensor-pin">PIN D3 · Digital</div>
+              </div>
+              <div class="sensor-value" id="sensor-ir">CLEAR</div>
+              <div class="sensor-dot on"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap" style="background:rgba(124,58,237,0.12)">🌊</div>
+              <div class="sensor-info">
+                <div class="sensor-name">JSN-SR04T — Water Level</div>
+                <div class="sensor-pin">PIN A4 · Analog</div>
+              </div>
+              <div class="sensor-value" id="sensor-water">--</div>
+              <div class="sensor-dot off" title="Offline"></div>
+            </div>
+
+            <div class="sensor-row">
+              <div class="sensor-icon-wrap" style="background:rgba(16,185,129,0.12)">💨</div>
+              <div class="sensor-info">
+                <div class="sensor-name">MQ-135 — Air Quality / CO2</div>
+                <div class="sensor-pin">PIN A5 · Analog</div>
+              </div>
+              <div class="sensor-value" id="sensor-air">--</div>
+              <div class="sensor-dot off" title="Offline"></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FEATURES
+     ============================================================ -->
+<section id="features" class="features-section">
+  <div class="container">
+    <div class="section-header" data-fade>
+      <span class="section-label">Platform Features</span>
+      <h2 class="section-title">
+        Everything your department<br>
+        needs in <span class="gradient-text">one platform</span>
+      </h2>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card" data-fade>
+        <div class="feature-icon purple">📊</div>
+        <div class="feature-badge">Live</div>
+        <h3 class="feature-title">Real-time Dashboard</h3>
+        <p class="feature-desc">Monitor all sensor readings, GPIO states, and memory usage live with auto-refreshing charts and graphs.</p>
+      </div>
+
+      <div class="feature-card" data-fade>
+        <div class="feature-icon cyan">🔌</div>
+        <div class="feature-badge">40+ Sensors</div>
+        <h3 class="feature-title">Sensor Library</h3>
+        <p class="feature-desc">DHT22, PIR, Ultrasonic, IR, Gas, Soil Moisture, LDR, and more — all simulated with realistic values.</p>
+      </div>
+
+      <div class="feature-card" data-fade>
+        <div class="feature-icon green">⚡</div>
+        <div class="feature-badge">Coming Soon</div>
+        <h3 class="feature-title">GPIO Visualizer</h3>
+        <p class="feature-desc">See pin states in real-time on a visual board layout. High/Low, PWM duty cycle, and I2C bus traffic.</p>
+      </div>
+
+      <div class="feature-card" data-fade>
+        <div class="feature-icon orange">📡</div>
+        <div class="feature-badge">Beta</div>
+        <h3 class="feature-title">Serial Monitor</h3>
+        <p class="feature-desc">Full-featured serial console with baud-rate selection, timestamping, and data export to CSV.</p>
+      </div>
+
+      <div class="feature-card" data-fade>
+        <div class="feature-icon red">🚨</div>
+        <h3 class="feature-title">Automated Alerts</h3>
+        <p class="feature-desc">Set threshold alerts for any sensor. Get notified when temperature crosses limits or motion is detected.</p>
+      </div>
+
+      <div class="feature-card" data-fade>
+        <div class="feature-icon pink">📈</div>
+        <h3 class="feature-title">Data Plotter</h3>
+        <p class="feature-desc">Plot and compare multiple sensors on the same timeline. Export as PNG or JSON for reports.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     BOARDS SECTION
+     ============================================================ -->
+<section id="sensors" class="features-section" style="padding-top:0">
+  <div class="container">
+    <div class="section-header" data-fade>
+      <span class="section-label">Supported Hardware</span>
+      <h2 class="section-title">
+        Pick your board,<br>
+        <span class="gradient-text">start simulating</span>
+      </h2>
+      <p class="section-subtitle">All major microcontroller boards supported with accurate pin mappings, clock speeds, and memory specs.</p>
+    </div>
+
+    <!-- Boards Grid -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:60px" class="boards-grid" data-fade>
+
+      <div class="card" style="padding:22px;cursor:pointer" onclick>
+        <div style="font-size:28px;margin-bottom:12px">🔵</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">Arduino Uno R3</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);margin-bottom:12px">ATmega328P · 16 MHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="chip-stat">14 Digital I/O</span>
+          <span class="chip-stat">6 Analog In</span>
+          <span class="chip-stat">2KB SRAM</span>
+          <span class="chip-stat">32KB Flash</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px;cursor:pointer">
+        <div style="font-size:28px;margin-bottom:12px">🔵</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">Arduino Nano</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);margin-bottom:12px">ATmega328P · 16 MHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="chip-stat">22 Digital I/O</span>
+          <span class="chip-stat">8 Analog In</span>
+          <span class="chip-stat">2KB SRAM</span>
+          <span class="chip-stat">32KB Flash</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px;cursor:pointer">
+        <div style="font-size:28px;margin-bottom:12px">🔵</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">Arduino Mega 2560</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);margin-bottom:12px">ATmega2560 · 16 MHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="chip-stat">54 Digital I/O</span>
+          <span class="chip-stat">16 Analog In</span>
+          <span class="chip-stat">8KB SRAM</span>
+          <span class="chip-stat">256KB Flash</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px;cursor:pointer">
+        <div style="font-size:28px;margin-bottom:12px">🔵</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">Arduino Leonardo</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);margin-bottom:12px">ATmega32u4 · 16 MHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="chip-stat">20 Digital I/O</span>
+          <span class="chip-stat">12 Analog In</span>
+          <span class="chip-stat">2.5KB SRAM</span>
+          <span class="chip-stat">32KB Flash</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px;cursor:pointer;border-color:rgba(138,99,255,0.4)">
+        <div style="font-size:28px;margin-bottom:12px">🟣</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">ESP32 DevKit v1</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);margin-bottom:12px">Xtensa LX6 Dual · 240 MHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="chip-stat">34 GPIO</span>
+          <span class="chip-stat">WiFi + BT</span>
+          <span class="chip-stat">320KB SRAM</span>
+          <span class="chip-stat">4MB Flash</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px;cursor:pointer">
+        <div style="font-size:28px;margin-bottom:12px">🟤</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">ESP8266 NodeMCU</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);margin-bottom:12px">Tensilica L106 · 80 MHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="chip-stat">11 Digital I/O</span>
+          <span class="chip-stat">WiFi</span>
+          <span class="chip-stat">80KB SRAM</span>
+          <span class="chip-stat">4MB Flash</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px;cursor:pointer">
+        <div style="font-size:28px;margin-bottom:12px">🟢</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">Raspberry Pi Pico</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);margin-bottom:12px">RP2040 Dual · 133 MHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="chip-stat">26 GPIO</span>
+          <span class="chip-stat">3 Analog In</span>
+          <span class="chip-stat">264KB SRAM</span>
+          <span class="chip-stat">2MB Flash</span>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px;cursor:pointer">
+        <div style="font-size:28px;margin-bottom:12px">⚫</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">STM32 BluePill</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);margin-bottom:12px">STM32F103C8 · 72 MHz</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          <span class="chip-stat">37 GPIO</span>
+          <span class="chip-stat">10 Analog In</span>
+          <span class="chip-stat">20KB SRAM</span>
+          <span class="chip-stat">64KB Flash</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sensor Catalogue -->
+    <div class="section-header" data-fade style="margin-top:20px">
+      <span class="section-label">Sensor Catalogue</span>
+      <h2 class="section-title" style="font-size:clamp(24px,3vw,36px)">
+        60+ sensors, <span class="gradient-text">all simulated</span>
+      </h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px" class="sensor-cat-grid" data-fade>
+
+      <!-- Environmental -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">🌡️ Environmental</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>DHT11</span><span class="stag">Temperature &amp; Humidity</span></div>
+          <div class="sensor-cat-row"><span>DHT22</span><span class="stag">High-Accuracy T&amp;H</span></div>
+          <div class="sensor-cat-row"><span>DS18B20</span><span class="stag">Waterproof Temp</span></div>
+          <div class="sensor-cat-row"><span>BMP180</span><span class="stag">Barometric Pressure</span></div>
+          <div class="sensor-cat-row"><span>BMP280</span><span class="stag">Temp + Pressure</span></div>
+          <div class="sensor-cat-row"><span>BME280</span><span class="stag">T + H + Pressure</span></div>
+          <div class="sensor-cat-row"><span>SHT31</span><span class="stag">Precision Humidity</span></div>
+        </div>
+      </div>
+
+      <!-- Motion & Distance -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">📏 Motion &amp; Distance</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>HC-SR04</span><span class="stag">Ultrasonic Distance</span></div>
+          <div class="sensor-cat-row"><span>HC-SR501</span><span class="stag">PIR Motion</span></div>
+          <div class="sensor-cat-row"><span>MPU6050</span><span class="stag">Accel + Gyro</span></div>
+          <div class="sensor-cat-row"><span>ADXL345</span><span class="stag">3-Axis Accelerometer</span></div>
+          <div class="sensor-cat-row"><span>VL53L0X</span><span class="stag">ToF Laser Distance</span></div>
+          <div class="sensor-cat-row"><span>GP2Y0A21</span><span class="stag">IR Sharp Distance</span></div>
+          <div class="sensor-cat-row"><span>MPU9250</span><span class="stag">9-DOF IMU</span></div>
+        </div>
+      </div>
+
+      <!-- Gas & Air -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">💨 Gas &amp; Air Quality</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>MQ-2</span><span class="stag">Smoke / LPG / CH4</span></div>
+          <div class="sensor-cat-row"><span>MQ-3</span><span class="stag">Alcohol / Ethanol</span></div>
+          <div class="sensor-cat-row"><span>MQ-5</span><span class="stag">Natural Gas</span></div>
+          <div class="sensor-cat-row"><span>MQ-7</span><span class="stag">Carbon Monoxide</span></div>
+          <div class="sensor-cat-row"><span>MQ-135</span><span class="stag">Air Quality / CO2</span></div>
+          <div class="sensor-cat-row"><span>CCS811</span><span class="stag">VOC + CO2 Digital</span></div>
+          <div class="sensor-cat-row"><span>PMS5003</span><span class="stag">Particulate Matter</span></div>
+        </div>
+      </div>
+
+      <!-- Light & Color -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">☀️ Light &amp; Color</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>LDR</span><span class="stag">Ambient Light</span></div>
+          <div class="sensor-cat-row"><span>BH1750</span><span class="stag">Digital Lux Meter</span></div>
+          <div class="sensor-cat-row"><span>VEML6030</span><span class="stag">Ambient Light I2C</span></div>
+          <div class="sensor-cat-row"><span>TCS34725</span><span class="stag">RGB Color Sensor</span></div>
+          <div class="sensor-cat-row"><span>APDS9960</span><span class="stag">Proximity + Color</span></div>
+          <div class="sensor-cat-row"><span>UV ML8511</span><span class="stag">UV Intensity</span></div>
+          <div class="sensor-cat-row"><span>AS7341</span><span class="stag">11-Channel Spectral</span></div>
+        </div>
+      </div>
+
+      <!-- Sound & Vibration -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">🔊 Sound &amp; Vibration</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>KY-037</span><span class="stag">Sound Level Analog</span></div>
+          <div class="sensor-cat-row"><span>MAX4466</span><span class="stag">Electret Microphone</span></div>
+          <div class="sensor-cat-row"><span>INMP441</span><span class="stag">I2S MEMS Microphone</span></div>
+          <div class="sensor-cat-row"><span>SW-420</span><span class="stag">Vibration Sensor</span></div>
+          <div class="sensor-cat-row"><span>KY-002</span><span class="stag">Shock Sensor</span></div>
+          <div class="sensor-cat-row"><span>SPH0645</span><span class="stag">PDM Microphone</span></div>
+        </div>
+      </div>
+
+      <!-- Soil, Water & Nature -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">🌱 Soil, Water &amp; Nature</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>YL-69</span><span class="stag">Soil Moisture</span></div>
+          <div class="sensor-cat-row"><span>Capacitive v1.2</span><span class="stag">Soil Moisture No-Rust</span></div>
+          <div class="sensor-cat-row"><span>JSN-SR04T</span><span class="stag">Water Level Ultrasonic</span></div>
+          <div class="sensor-cat-row"><span>Rain Sensor</span><span class="stag">Rain / Precipitation</span></div>
+          <div class="sensor-cat-row"><span>Turbidity</span><span class="stag">Water Clarity</span></div>
+          <div class="sensor-cat-row"><span>pH Sensor</span><span class="stag">Liquid Acidity</span></div>
+          <div class="sensor-cat-row"><span>TDS Sensor</span><span class="stag">Water Purity</span></div>
+        </div>
+      </div>
+
+      <!-- IR & Communication -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">📡 IR &amp; Detection</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>TCRT5000</span><span class="stag">IR Obstacle / Line</span></div>
+          <div class="sensor-cat-row"><span>VS1838B</span><span class="stag">IR Receiver</span></div>
+          <div class="sensor-cat-row"><span>KY-032</span><span class="stag">Obstacle Avoidance</span></div>
+          <div class="sensor-cat-row"><span>FC-51</span><span class="stag">IR Proximity</span></div>
+          <div class="sensor-cat-row"><span>RFID RC522</span><span class="stag">RFID Reader / Writer</span></div>
+          <div class="sensor-cat-row"><span>PN532</span><span class="stag">NFC Module</span></div>
+        </div>
+      </div>
+
+      <!-- Display & Output -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">📺 Display &amp; Output</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>SSD1306</span><span class="stag">0.96" OLED I2C</span></div>
+          <div class="sensor-cat-row"><span>LCD 16×2</span><span class="stag">Character LCD</span></div>
+          <div class="sensor-cat-row"><span>7-Seg TM1637</span><span class="stag">4-Digit Display</span></div>
+          <div class="sensor-cat-row"><span>MAX7219</span><span class="stag">8×8 LED Matrix</span></div>
+          <div class="sensor-cat-row"><span>WS2812B</span><span class="stag">Addressable RGB LEDs</span></div>
+          <div class="sensor-cat-row"><span>NeoPixel Ring</span><span class="stag">RGB LED Ring</span></div>
+        </div>
+      </div>
+
+      <!-- Power & Misc -->
+      <div class="sensor-cat-card">
+        <div class="sensor-cat-title">⚡ Power &amp; Misc</div>
+        <div class="sensor-cat-list">
+          <div class="sensor-cat-row"><span>INA219</span><span class="stag">Current / Power</span></div>
+          <div class="sensor-cat-row"><span>ACS712</span><span class="stag">Hall Effect Current</span></div>
+          <div class="sensor-cat-row"><span>DS3231</span><span class="stag">Real-Time Clock</span></div>
+          <div class="sensor-cat-row"><span>AT24C256</span><span class="stag">EEPROM Storage</span></div>
+          <div class="sensor-cat-row"><span>Servo SG90</span><span class="stag">Micro Servo Motor</span></div>
+          <div class="sensor-cat-row"><span>L298N</span><span class="stag">DC Motor Driver</span></div>
+          <div class="sensor-cat-row"><span>A4988</span><span class="stag">Stepper Driver</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     HOW IT WORKS
+     ============================================================ -->
+<section class="how-section">
+  <div class="container">
+    <div class="section-header" data-fade>
+      <span class="section-label">Workflow</span>
+      <h2 class="section-title">Simulate in <span class="gradient-text">3 steps</span></h2>
+      <p class="section-subtitle">From zero to running circuit in under 60 seconds — no installs, no drivers, no frustration.</p>
+    </div>
+    <div class="how-steps" data-fade>
+      <div class="how-step">
+        <div class="how-number">01</div>
+        <div class="how-icon">🎛️</div>
+        <h3>Pick your board</h3>
+        <p>Choose Arduino Uno, Nano, ESP32, ESP8266, RPi Pico, STM32 or more. Each comes pre-loaded with correct pinouts and specs.</p>
+      </div>
+      <div class="how-arrow">→</div>
+      <div class="how-step">
+        <div class="how-number">02</div>
+        <div class="how-icon">🔌</div>
+        <h3>Add sensors &amp; components</h3>
+        <p>Drag and drop from 60+ sensors, displays, motors, and modules. Wire them visually or configure via JSON.</p>
+      </div>
+      <div class="how-arrow">→</div>
+      <div class="how-step">
+        <div class="how-number">03</div>
+        <div class="how-icon">▶️</div>
+        <h3>Write code &amp; run</h3>
+        <p>Write Arduino C++ or MicroPython in the built-in editor. Hit Run — watch your virtual circuit come alive instantly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CODE EDITOR PREVIEW
+     ============================================================ -->
+<section class="editor-section">
+  <div class="container">
+    <div class="editor-layout" data-fade>
+      <div class="editor-content">
+        <span class="section-label">Built-in Code Editor</span>
+        <h2 class="section-title" style="text-align:left;margin-top:16px">
+          Write, compile &amp;<br>
+          <span class="gradient-text">run instantly</span>
+        </h2>
+        <p class="section-subtitle" style="text-align:left;margin:16px 0 28px">
+          Full Monaco-powered editor with syntax highlighting, autocomplete, and Arduino/MicroPython library support — right in your browser.
+        </p>
+        <div class="editor-features">
+          <div class="editor-feat">✦ Arduino C++ &amp; MicroPython</div>
+          <div class="editor-feat">✦ Syntax highlighting + autocomplete</div>
+          <div class="editor-feat">✦ Built-in library manager</div>
+          <div class="editor-feat">✦ Live serial output monitor</div>
+          <div class="editor-feat">✦ Error highlighting + line numbers</div>
+          <div class="editor-feat">✦ Share code via link</div>
+        </div>
+      </div>
+      <div class="editor-window">
+        <div class="editor-titlebar">
+          <div class="window-dots"><div class="window-dot red"></div><div class="window-dot yellow"></div><div class="window-dot green"></div></div>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted)">sketch.ino — SimuLab Editor</span>
+          <span class="window-action-btn">▶ Run</span>
+        </div>
+        <div class="code-block">
+<pre><span class="c-comment">// SimuLab — DHT22 + OLED Dashboard</span>
+<span class="c-kw">#include</span> <span class="c-str">&lt;DHT.h&gt;</span>
+<span class="c-kw">#include</span> <span class="c-str">&lt;Adafruit_SSD1306.h&gt;</span>
+
+<span class="c-kw">#define</span> <span class="c-def">DHT_PIN</span>  <span class="c-num">4</span>
+<span class="c-kw">#define</span> <span class="c-def">DHT_TYPE</span> <span class="c-def">DHT22</span>
+
+DHT dht(<span class="c-def">DHT_PIN</span>, <span class="c-def">DHT_TYPE</span>);
+Adafruit_SSD1306 display(<span class="c-num">128</span>, <span class="c-num">64</span>);
+
+<span class="c-type">void</span> <span class="c-fn">setup</span>() {
+  Serial.<span class="c-fn">begin</span>(<span class="c-num">9600</span>);
+  dht.<span class="c-fn">begin</span>();
+  display.<span class="c-fn">begin</span>(SSD1306_SWITCHCAPVCC, <span class="c-num">0x3C</span>);
+}
+
+<span class="c-type">void</span> <span class="c-fn">loop</span>() {
+  <span class="c-type">float</span> temp = dht.<span class="c-fn">readTemperature</span>();
+  <span class="c-type">float</span> hum  = dht.<span class="c-fn">readHumidity</span>();
+
+  display.<span class="c-fn">clearDisplay</span>();
+  display.<span class="c-fn">print</span>(<span class="c-str">"Temp: "</span>); display.<span class="c-fn">println</span>(temp);
+  display.<span class="c-fn">print</span>(<span class="c-str">"Hum:  "</span>); display.<span class="c-fn">println</span>(hum);
+  display.<span class="c-fn">display</span>();
+  <span class="c-fn">delay</span>(<span class="c-num">2000</span>);
+}</pre>
+        </div>
+        <div class="serial-output">
+          <div class="serial-header">📡 Serial Monitor — 9600 baud</div>
+          <div class="serial-lines" id="serial-output">
+            <div class="serial-line"><span class="serial-ts">[00:00:01]</span> Temp: 26.3 | Hum: 64.1</div>
+            <div class="serial-line"><span class="serial-ts">[00:00:03]</span> Temp: 26.5 | Hum: 63.8</div>
+            <div class="serial-line"><span class="serial-ts">[00:00:05]</span> Temp: 26.4 | Hum: 64.2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PROJECT GALLERY
+     ============================================================ -->
+<section class="gallery-section" id="projects">
+  <div class="container">
+    <div class="section-header" data-fade>
+      <span class="section-label">Community Projects</span>
+      <h2 class="section-title">Built by students,<br><span class="gradient-text">shared with everyone</span></h2>
+      <p class="section-subtitle">Browse, fork, and remix real projects from the SimuLab community.</p>
+    </div>
+
+    <div class="gallery-grid" data-fade>
+
+      <div class="gallery-card">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#1a0e35,#2d1b5a)">
+          <div class="gallery-circuit">
+            <div class="gc-chip">ESP32</div>
+            <div class="gc-wire w1"></div>
+            <div class="gc-sensor s1">🌡️</div>
+            <div class="gc-sensor s2">📺</div>
+          </div>
+        </div>
+        <div class="gallery-info">
+          <div class="gallery-tags"><span class="gtag">ESP32</span><span class="gtag">DHT22</span><span class="gtag">OLED</span></div>
+          <h4>Weather Station with OLED</h4>
+          <p>Real-time temp, humidity and pressure on a 0.96" OLED display.</p>
+          <div class="gallery-meta">
+            <span>👤 Rahul M.</span>
+            <span>⭐ 142</span>
+            <span>🔀 38 forks</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gallery-card">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#0e1f35,#1b3a5a)">
+          <div class="gallery-circuit">
+            <div class="gc-chip">Uno</div>
+            <div class="gc-sensor s3">🚗</div>
+            <div class="gc-sensor s4">👁️</div>
+          </div>
+        </div>
+        <div class="gallery-info">
+          <div class="gallery-tags"><span class="gtag">Arduino Uno</span><span class="gtag">IR</span><span class="gtag">Motor</span></div>
+          <h4>Line Following Robot</h4>
+          <p>3-sensor IR array with PID control and L298N motor driver.</p>
+          <div class="gallery-meta">
+            <span>👤 Priya S.</span>
+            <span>⭐ 98</span>
+            <span>🔀 21 forks</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gallery-card">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#1a1e0e,#2d3a1b)">
+          <div class="gallery-circuit">
+            <div class="gc-chip">ESP8266</div>
+            <div class="gc-sensor s5">☁️</div>
+            <div class="gc-sensor s6">🌿</div>
+          </div>
+        </div>
+        <div class="gallery-info">
+          <div class="gallery-tags"><span class="gtag">ESP8266</span><span class="gtag">WiFi</span><span class="gtag">MQTT</span></div>
+          <h4>IoT Plant Monitor</h4>
+          <p>Soil moisture + DHT11 streamed to Blynk dashboard over WiFi.</p>
+          <div class="gallery-meta">
+            <span>👤 Arjun K.</span>
+            <span>⭐ 211</span>
+            <span>🔀 67 forks</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gallery-card">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#35100e,#5a2a1b)">
+          <div class="gallery-circuit">
+            <div class="gc-chip">Nano</div>
+            <div class="gc-sensor s7">🔒</div>
+            <div class="gc-sensor s8">💡</div>
+          </div>
+        </div>
+        <div class="gallery-info">
+          <div class="gallery-tags"><span class="gtag">Arduino Nano</span><span class="gtag">RFID</span><span class="gtag">Servo</span></div>
+          <h4>RFID Smart Door Lock</h4>
+          <p>RC522 RFID scanner with servo-controlled deadbolt and LED status.</p>
+          <div class="gallery-meta">
+            <span>👤 Sneha T.</span>
+            <span>⭐ 175</span>
+            <span>🔀 44 forks</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gallery-card">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#2a0e35,#4a1b5a)">
+          <div class="gallery-circuit">
+            <div class="gc-chip">Mega</div>
+            <div class="gc-sensor s9">🎹</div>
+            <div class="gc-sensor s10">🔊</div>
+          </div>
+        </div>
+        <div class="gallery-info">
+          <div class="gallery-tags"><span class="gtag">Arduino Mega</span><span class="gtag">Buzzer</span><span class="gtag">Keypad</span></div>
+          <h4>Mini Piano + Recorder</h4>
+          <p>4×4 matrix keypad with piezo buzzer, records and replays melodies.</p>
+          <div class="gallery-meta">
+            <span>👤 Dev P.</span>
+            <span>⭐ 89</span>
+            <span>🔀 17 forks</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gallery-card">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#0e2535,#1b3f5a)">
+          <div class="gallery-circuit">
+            <div class="gc-chip">RPi Pico</div>
+            <div class="gc-sensor s11">📊</div>
+            <div class="gc-sensor s12">🌡️</div>
+          </div>
+        </div>
+        <div class="gallery-info">
+          <div class="gallery-tags"><span class="gtag">RPi Pico</span><span class="gtag">MicroPython</span><span class="gtag">I2C</span></div>
+          <h4>MicroPython Data Logger</h4>
+          <p>BME280 logs temp/pressure to SD card every 5 seconds, CSV format.</p>
+          <div class="gallery-meta">
+            <span>👤 Anjali R.</span>
+            <span>⭐ 134</span>
+            <span>🔀 29 forks</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="text-align:center;margin-top:36px">
+      <a href="#" class="btn-ghost">Browse all projects →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CLASSROOM / HOD MODE
+     ============================================================ -->
+<section class="classroom-section" id="classroom">
+  <div class="container">
+    <div class="classroom-layout" data-fade>
+      <div class="classroom-content">
+        <span class="section-label">For Departments &amp; Institutions</span>
+        <h2 class="section-title" style="text-align:left;margin-top:16px;font-size:clamp(28px,3.5vw,44px)">
+          SimuLab <span class="gradient-text">Classroom</span><br>
+          for your department
+        </h2>
+        <p style="color:var(--color-text-muted);font-size:15px;margin:16px 0 28px;line-height:1.7">
+          HODs and faculty can create virtual labs, assign experiments, track student progress, and grade submissions — all without a single physical component.
+        </p>
+        <div class="classroom-features">
+          <div class="cls-feat">
+            <div class="cls-icon">👨‍🏫</div>
+            <div>
+              <strong>Faculty Dashboard</strong>
+              <p>Create experiments, set deadlines, monitor real-time student progress and circuit builds.</p>
+            </div>
+          </div>
+          <div class="cls-feat">
+            <div class="cls-icon">👩‍🎓</div>
+            <div>
+              <strong>Student Submissions</strong>
+              <p>Students build, simulate, and submit directly. Auto-graded against expected sensor output.</p>
+            </div>
+          </div>
+          <div class="cls-feat">
+            <div class="cls-icon">📋</div>
+            <div>
+              <strong>Experiment Templates</strong>
+              <p>Pre-built labs for common ECE/EEE practicals: traffic light, temperature controller, UART comms.</p>
+            </div>
+          </div>
+          <div class="cls-feat">
+            <div class="cls-icon">📊</div>
+            <div>
+              <strong>Progress Reports</strong>
+              <p>Export PDF reports per student or per batch. Perfect for internal assessments and accreditation.</p>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:32px;display:flex;gap:12px;flex-wrap:wrap">
+          <a href="#waitlist" class="btn-primary">🏫 Request Classroom Access</a>
+          <a href="#" class="btn-ghost">See Demo →</a>
+        </div>
+      </div>
+      <div class="classroom-stats" data-fade>
+        <div class="cls-stat-card">
+          <div class="cls-stat-num gradient-text">500+</div>
+          <div class="cls-stat-label">Experiment Templates</div>
+        </div>
+        <div class="cls-stat-card">
+          <div class="cls-stat-num gradient-text">∞</div>
+          <div class="cls-stat-label">Students per Batch</div>
+        </div>
+        <div class="cls-stat-card">
+          <div class="cls-stat-num gradient-text">0₹</div>
+          <div class="cls-stat-label">Hardware Cost</div>
+        </div>
+        <div class="cls-stat-card">
+          <div class="cls-stat-num gradient-text">24/7</div>
+          <div class="cls-stat-label">Lab Availability</div>
+        </div>
+        <div class="cls-stat-card" style="grid-column:1/-1;background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.3)">
+          <div style="font-size:13px;color:var(--color-text-muted);margin-bottom:8px">Trusted by departments at</div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <span class="trusted-logo" style="opacity:1">IIT Madras</span>
+            <span class="trusted-logo" style="opacity:1">NIT Trichy</span>
+            <span class="trusted-logo" style="opacity:1">VIT</span>
+            <span class="trusted-logo" style="opacity:1">SRM</span>
+            <span class="trusted-logo" style="opacity:1">Amrita</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     VS WOKWI COMPARISON
+     ============================================================ -->
+<section class="compare-section">
+  <div class="container">
+    <div class="section-header" data-fade>
+      <span class="section-label">Platform Comparison</span>
+      <h2 class="section-title">Why SimuLab beats<br><span class="gradient-text">generic simulators</span></h2>
+    </div>
+    <div class="compare-table" data-fade>
+      <div class="compare-header">
+        <div class="compare-feature-col">Feature</div>
+        <div class="compare-col simulab-col">⚡ SimuLab</div>
+        <div class="compare-col">Wokwi</div>
+        <div class="compare-col">Tinkercad</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">Classroom / HOD Mode</div>
+        <div class="compare-col"><span class="cmp-yes">✓ Built-in</span></div>
+        <div class="compare-col"><span class="cmp-partial">Paid only</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">Indian College Integration</div>
+        <div class="compare-col"><span class="cmp-yes">✓ Native</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">Sensor Count</div>
+        <div class="compare-col"><span class="cmp-yes">60+</span></div>
+        <div class="compare-col"><span class="cmp-partial">~40</span></div>
+        <div class="compare-col"><span class="cmp-partial">~25</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">MicroPython Support</div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">Arduino C++ Editor</div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">Student Progress Tracking</div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">Real-time Data Dashboard</div>
+        <div class="compare-col"><span class="cmp-yes">✓ Live charts</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">Project Gallery / Fork</div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">Free for Students</div>
+        <div class="compare-col"><span class="cmp-yes">✓ Always free</span></div>
+        <div class="compare-col"><span class="cmp-partial">Limited free</span></div>
+        <div class="compare-col"><span class="cmp-yes">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-feature">VS Code Extension</div>
+        <div class="compare-col"><span class="cmp-partial">Coming soon</span></div>
+        <div class="compare-col"><span class="cmp-yes">✓ Pro</span></div>
+        <div class="compare-col"><span class="cmp-no">✗</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PRICING
+     ============================================================ -->
+<section class="pricing-section" id="pricing">
+  <div class="container">
+    <div class="section-header" data-fade>
+      <span class="section-label">Pricing</span>
+      <h2 class="section-title">Simple, <span class="gradient-text">student-first</span> pricing</h2>
+      <p class="section-subtitle">Free forever for individual students. Affordable for institutions.</p>
+    </div>
+    <div class="pricing-grid" data-fade>
+      <div class="pricing-card">
+        <div class="pricing-tier">Free</div>
+        <div class="pricing-price">₹0<span>/month</span></div>
+        <div class="pricing-desc">For individual students</div>
+        <ul class="pricing-features">
+          <li>✓ All boards & sensors</li>
+          <li>✓ 5 saved projects</li>
+          <li>✓ Serial monitor</li>
+          <li>✓ Community gallery</li>
+          <li>✓ Basic data plotter</li>
+          <li style="color:var(--color-text-dim)">✗ Classroom mode</li>
+          <li style="color:var(--color-text-dim)">✗ Export reports</li>
+        </ul>
+        <a href="#waitlist" class="btn-ghost" style="width:100%;justify-content:center;margin-top:auto">Get Started Free</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="pricing-badge-top">Most Popular</div>
+        <div class="pricing-tier">Department</div>
+        <div class="pricing-price">₹499<span>/month</span></div>
+        <div class="pricing-desc">Per department, unlimited students</div>
+        <ul class="pricing-features">
+          <li>✓ Everything in Free</li>
+          <li>✓ Unlimited projects</li>
+          <li>✓ Classroom mode</li>
+          <li>✓ Student progress tracking</li>
+          <li>✓ Assignment grading</li>
+          <li>✓ PDF report export</li>
+          <li>✓ 500+ lab templates</li>
+        </ul>
+        <a href="#waitlist" class="btn-primary" style="width:100%;justify-content:center;margin-top:auto">Request Access</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-tier">Institution</div>
+        <div class="pricing-price">Custom</div>
+        <div class="pricing-desc">For entire colleges / universities</div>
+        <ul class="pricing-features">
+          <li>✓ Everything in Department</li>
+          <li>✓ All departments</li>
+          <li>✓ SSO / LDAP login</li>
+          <li>✓ Custom branding</li>
+          <li>✓ Dedicated support</li>
+          <li>✓ SLA guarantee</li>
+          <li>✓ On-premise option</li>
+        </ul>
+        <a href="#" class="btn-ghost" style="width:100%;justify-content:center;margin-top:auto">Contact Us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CTA
+     ============================================================ -->
+<section class="cta-section" id="about">
+  <div class="container">
+    <div class="cta-card" data-fade>
+      <h2 class="cta-title">
+        Ready to simulate<br>
+        <span class="gradient-text">your first circuit?</span>
+      </h2>
+      <p class="cta-subtitle">
+        No hardware. No installation. No cost for students.
+        Just open the browser and start building.
+      </p>
+      <div class="cta-actions">
+        <a href="#simulator" class="btn-primary">🚀 Launch Simulator</a>
+        <a href="#docs" class="btn-ghost">📖 Read the Docs</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="footer" id="docs">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo" style="margin-bottom:4px;display:inline-flex">
+          <div class="nav-logo-icon">⚡</div>
+          <span class="nav-logo-text">Simu<span>Lab</span></span>
+        </a>
+        <p>Open-source virtual lab for embedded systems education. Built for students, by students.</p>
+        <div class="footer-socials">
+          <a class="footer-social-btn" href="#" title="GitHub">⬡</a>
+          <a class="footer-social-btn" href="#" title="Twitter">𝕏</a>
+          <a class="footer-social-btn" href="#" title="LinkedIn">in</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Platform</div>
+        <ul class="footer-links">
+          <li><a href="#">Simulator</a></li>
+          <li><a href="#">Sensor Library</a></li>
+          <li><a href="#">GPIO Monitor</a></li>
+          <li><a href="#">Serial Console</a></li>
+          <li><a href="#">Data Plotter</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Resources</div>
+        <ul class="footer-links">
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">API Reference</a></li>
+          <li><a href="#">Tutorial Videos</a></li>
+          <li><a href="#">Example Projects</a></li>
+          <li><a href="#">GitHub</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">About</div>
+        <ul class="footer-links">
+          <li><a href="#">Our Story</a></li>
+          <li><a href="#">Department</a></li>
+          <li><a href="#">Contribute</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2025 SimuLab. Built with ❤️ for engineering students.</span>
+      <span>
+        <a href="#">Privacy Policy</a> &nbsp;·&nbsp;
+        <a href="#">Terms of Use</a> &nbsp;·&nbsp;
+        <a href="#">Open Source</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<!-- ✏️ JavaScript — edit js/main.js for interactivity -->
+<script src="js/main.js"></script>
+</body>
+</html>

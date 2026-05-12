@@ -1,0 +1,7 @@
+node_modules/
+npm-debug.log
+.env
+*.log
+{css,js,assets}/
+simulator.html
+simulator2.html

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SimuLab — Project Gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0c0c10;--bg2:#111116;--bg3:#18181f;--bg4:#1e1e28;--bg5:#252532;
+  --line:rgba(255,255,255,0.07);--line2:rgba(255,255,255,0.12);
+  --purple:#8b5cf6;--purple2:#7c3aed;--purple3:#a78bfa;
+  --green:#34d399;--red:#f87171;--yellow:#fbbf24;--cyan:#22d3ee;
+  --text:#f1f0f5;--text2:#a09db8;--text3:#5a5775;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:3px}
+
+/* ── NAV ── */
+nav{
+  height:56px;background:var(--bg2);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;padding:0 24px;gap:0;
+  position:sticky;top:0;z-index:100;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:32px}
+.nav-logo-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--purple2),var(--purple3));display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 16px rgba(139,92,246,.4)}
+.nav-logo-name{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text)}
+.nav-logo-name em{color:var(--purple3);font-style:normal}
+.nav-links{display:flex;gap:4px}
+.nav-link{padding:6px 14px;border-radius:6px;text-decoration:none;font-size:13px;color:var(--text2);transition:.15s}
+.nav-link:hover{background:var(--bg3);color:var(--text)}
+.nav-link.active{background:rgba(139,92,246,.15);color:var(--purple3)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:7px;font-family:var(--mono);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:.15s;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,var(--purple2),var(--purple));color:#fff;box-shadow:0 0 16px rgba(124,58,237,.3)}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-ghost{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);color:var(--purple3)}
+.btn-ghost:hover{background:rgba(139,92,246,.2)}
+.btn-plain{background:var(--bg3);border:1px solid var(--line);color:var(--text2)}
+.btn-plain:hover{border-color:var(--line2);color:var(--text)}
+
+/* ── HERO ── */
+.gallery-hero{
+  padding:48px 24px 36px;text-align:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(124,58,237,.12),transparent);
+  border-bottom:1px solid var(--line);
+}
+.gallery-hero h1{font-size:clamp(28px,4vw,48px);font-weight:700;letter-spacing:-1.5px;margin-bottom:12px}
+.gallery-hero h1 span{background:linear-gradient(135deg,var(--purple3),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.gallery-hero p{font-size:15px;color:var(--text2);max-width:500px;margin:0 auto 28px}
+.hero-stats{display:flex;gap:32px;justify-content:center}
+.hero-stat{text-align:center}
+.hero-stat-num{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text)}
+.hero-stat-lbl{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── TOOLBAR ── */
+.gallery-toolbar{
+  display:flex;align-items:center;gap:12px;padding:16px 24px;
+  border-bottom:1px solid var(--line);background:var(--bg2);
+  position:sticky;top:56px;z-index:90;flex-wrap:wrap;
+}
+.search-box{
+  display:flex;align-items:center;gap:8px;flex:1;max-width:360px;
+  background:var(--bg3);border:1px solid var(--line);border-radius:8px;
+  padding:8px 14px;transition:.15s;
+}
+.search-box:focus-within{border-color:var(--purple);background:var(--bg4)}
+.search-box input{background:none;border:none;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;width:100%}
+.search-box input::placeholder{color:var(--text3)}
+.filter-tabs{display:flex;gap:4px}
+.filter-tab{padding:6px 14px;border-radius:6px;font-size:12px;font-family:var(--mono);color:var(--text3);cursor:pointer;border:1px solid transparent;transition:.15s;user-select:none}
+.filter-tab:hover{background:var(--bg3);color:var(--text)}
+.filter-tab.on{background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.3);color:var(--purple3)}
+.sort-sel{background:var(--bg3);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;cursor:pointer;outline:none}
+.sort-sel:hover{border-color:var(--line2)}
+
+/* ── GRID ── */
+.gallery-main{padding:24px;max-width:1400px;margin:0 auto}
+.gallery-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:20px;
+}
+
+/* ── PROJECT CARD ── */
+.proj-card{
+  background:var(--bg2);border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;transition:.2s;cursor:pointer;
+  display:flex;flex-direction:column;
+}
+.proj-card:hover{border-color:rgba(139,92,246,.4);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 0 1px rgba(139,92,246,.15)}
+.proj-thumb{
+  height:160px;position:relative;overflow:hidden;
+  background:var(--bg3);flex-shrink:0;
+}
+.proj-thumb canvas{width:100%;height:100%}
+.proj-thumb-svg{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.proj-board-badge{
+  position:absolute;top:10px;left:10px;
+  padding:3px 9px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:600;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);border:1px solid var(--line2);
+  color:var(--text2);
+}
+.proj-fork-btn{
+  position:absolute;top:10px;right:10px;
+  padding:5px 12px;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:600;
+  background:rgba(124,58,237,.8);backdrop-filter:blur(4px);border:1px solid rgba(139,92,246,.5);
+  color:#fff;cursor:pointer;opacity:0;transition:.15s;
+}
+.proj-card:hover .proj-fork-btn{opacity:1}
+.proj-fork-btn:hover{background:var(--purple2)}
+.proj-body{padding:16px;flex:1;display:flex;flex-direction:column}
+.proj-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.proj-tag{padding:2px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;font-weight:500;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.2);color:var(--purple3)}
+.proj-tag.green{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.2);color:var(--green)}
+.proj-tag.cyan{background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.2);color:var(--cyan)}
+.proj-tag.yellow{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.2);color:var(--yellow)}
+.proj-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;letter-spacing:-.3px}
+.proj-desc{font-size:12px;color:var(--text2);line-height:1.6;flex:1;margin-bottom:12px}
+.proj-meta{display:flex;align-items:center;gap:10px;padding-top:12px;border-top:1px solid var(--line)}
+.proj-author{display:flex;align-items:center;gap:7px;flex:1}
+.proj-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--purple2),var(--purple3));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.proj-author-name{font-family:var(--mono);font-size:11px;color:var(--text2)}
+.proj-stats{display:flex;gap:10px}
+.proj-stat{font-family:var(--mono);font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px}
+.proj-stat span{color:var(--text2)}
+
+/* ── LOAD MORE ── */
+.load-more{text-align:center;padding:32px;display:none}
+.load-more.visible{display:block}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:80px 24px;color:var(--text3)}
+.empty-state h3{font-size:18px;color:var(--text2);margin-bottom:8px}
+.empty-state p{font-size:13px;line-height:1.7}
+
+/* ── MODAL (project detail) ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;
+  display:none;align-items:center;justify-content:center;padding:24px;
+  backdrop-filter:blur(4px);
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--bg2);border:1px solid var(--line2);border-radius:16px;
+  width:100%;max-width:740px;max-height:90vh;overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:16px}
+.modal-head-info{flex:1}
+.modal-head-title{font-size:20px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.modal-head-meta{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.modal-close{background:none;border:1px solid var(--line);border-radius:6px;color:var(--text3);padding:6px 10px;cursor:pointer;font-size:14px;transition:.15s;flex-shrink:0}
+.modal-close:hover{border-color:var(--line2);color:var(--text)}
+.modal-body{padding:20px 24px;overflow-y:auto;flex:1}
+.modal-code{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text2);overflow-x:auto;margin-bottom:16px;max-height:260px;overflow-y:auto}
+.modal-code .kw{color:#c084fc}.modal-code .cm{color:#4b5563;font-style:italic}
+.modal-code .str{color:#86efac}.modal-code .num{color:#fb923c}.modal-code .fn{color:#60a5fa}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .gallery-grid{grid-template-columns:1fr}
+  .gallery-toolbar{padding:12px 16px}
+  .gallery-hero{padding:32px 16px 24px}
+  .hero-stats{gap:20px}
+  .gallery-main{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-mark">⚡</div>
+    <span class="nav-logo-name">Simu<em>Lab</em></span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="workspace.html" class="nav-link">Simulator</a>
+    <a href="gallery.html" class="nav-link active">Gallery</a>
+    <a href="index.html#docs" class="nav-link">Docs</a>
+  </div>
+  <div class="nav-right">
+    <a href="workspace.html" class="btn btn-primary">▶ Open Simulator</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="gallery-hero">
+  <h1>Community <span>Projects</span></h1>
+  <p>Browse, learn from, and fork real circuits built by the SimuLab community</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num" id="stat-projects">48</div><div class="hero-stat-lbl">Projects</div></div>
+    <div class="hero-stat"><div class="hero-stat-num" id="stat-forks">312</div><div class="hero-stat-lbl">Forks</div></div>
+    <div class="hero-stat"><div class="hero-stat-num" id="stat-members">127</div><div class="hero-stat-lbl">Members</div></div>
+    <div class="hero-stat"><div class="hero-stat-num" id="stat-boards">7</div><div class="hero-stat-lbl">Boards</div></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="gallery-toolbar">
+  <div class="search-box">
+    <span style="color:var(--text3)">🔍</span>
+    <input type="text" id="search-input" placeholder="Search projects, sensors, components..." oninput="filterGallery()"/>
+  </div>
+  <div class="filter-tabs">
+    <div class="filter-tab on" data-filter="all"      onclick="setFilter('all',this)">All</div>
+    <div class="filter-tab"   data-filter="arduino"   onclick="setFilter('arduino',this)">Arduino</div>
+    <div class="filter-tab"   data-filter="esp32"     onclick="setFilter('esp32',this)">ESP32</div>
+    <div class="filter-tab"   data-filter="sensor"    onclick="setFilter('sensor',this)">Sensors</div>
+    <div class="filter-tab"   data-filter="iot"       onclick="setFilter('iot',this)">IoT</div>
+    <div class="filter-tab"   data-filter="beginner"  onclick="setFilter('beginner',this)">Beginner</div>
+  </div>
+  <select class="sort-sel" id="sort-sel" onchange="sortGallery()">
+    <option value="popular">Most Popular</option>
+    <option value="recent">Most Recent</option>
+    <option value="forks">Most Forked</option>
+    <option value="name">Name A-Z</option>
+  </select>
+  <a href="workspace.html" class="btn btn-primary" style="margin-left:auto">+ New Project</a>
+</div>
+
+<!-- GALLERY GRID -->
+<div class="gallery-main">
+  <div class="gallery-grid" id="gallery-grid"></div>
+  <div class="load-more" id="load-more">
+    <button class="btn btn-plain" onclick="loadMore()">Load more projects →</button>
+  </div>
+  <div class="empty-state" id="empty-state" style="display:none">
+    <h3>No projects found</h3>
+    <p>Try a different search or filter.<br>Or <a href="workspace.html" style="color:var(--purple3)">create the first one!</a></p>
+  </div>
+</div>
+
+<!-- PROJECT DETAIL MODAL -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-info">
+        <div class="modal-head-title" id="modal-title">Project Title</div>
+        <div class="modal-head-meta" id="modal-meta"></div>
+        <div class="proj-tags" id="modal-tags" style="margin-top:8px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-desc" style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px"></p>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:8px">📝 Code Preview</div>
+      <div class="modal-code" id="modal-code"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
+        <div style="background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)" id="modal-stars">0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Stars</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)" id="modal-forks-count">0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Forks</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)" id="modal-views">0</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Views</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" id="modal-fork-btn" onclick="forkProject()">⑂ Fork & Open in Simulator</button>
+      <button class="btn btn-plain" onclick="starProject()">⭐ Star</button>
+      <button class="btn btn-plain" onclick="closeModal()">Close</button>
+      <div id="modal-author" style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text3)"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// SimuLab Gallery — Community Projects
+// ═══════════════════════════════════════════════════════
+
+// Sample projects data (replace with Firestore in production)
+const PROJECTS = [
+  {
+    id:'p001', title:'Weather Station with OLED',
+    desc:'Real-time temperature, humidity and pressure on a 0.96" OLED display. Uses DHT22 + BMP180 sensors with live data refresh every 2 seconds.',
+    author:'Rahul M.', authorInit:'R', board:'Arduino Uno',
+    tags:['DHT22','OLED','BMP180','Beginner'],
+    stars:142, forks:38, views:1240, date:'2024-12-01',
+    filter:['all','arduino','sensor','beginner'],
+    color:'#0f1a35',
+    code:`#include <Wire.h>
+#include <Adafruit_SSD1306.h>
+#include <DHT.h>
+
+DHT dht(4, DHT22);
+Adafruit_SSD1306 display(128, 64, &Wire, -1);
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+}
+
+void loop() {
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.print("Temp: "); display.println(t);
+  display.print("Hum:  "); display.println(h);
+  display.display();
+  delay(2000);
+}`,
+  },
+  {
+    id:'p002', title:'Line Following Robot',
+    desc:'3-sensor IR array with PID control algorithm and L298N motor driver. Follows black line on white surface with speed control via potentiometer.',
+    author:'Priya S.', authorInit:'P', board:'Arduino Uno',
+    tags:['IR Sensor','Motor','PID','Intermediate'],
+    stars:98, forks:21, views:876, date:'2024-11-28',
+    filter:['all','arduino'],
+    color:'#0a2010',
+    code:`#define L_SENSOR 2
+#define M_SENSOR 3
+#define R_SENSOR 4
+#define MOTOR_L1 8
+#define MOTOR_L2 9
+#define MOTOR_R1 10
+#define MOTOR_R2 11
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(L_SENSOR, INPUT);
+  // ... motor setup
+}
+
+void loop() {
+  int L = digitalRead(L_SENSOR);
+  int M = digitalRead(M_SENSOR);
+  int R = digitalRead(R_SENSOR);
+  if (!M) { forward(); }
+  else if (!L) { turnLeft(); }
+  else if (!R) { turnRight(); }
+  else { stop(); }
+}`,
+  },
+  {
+    id:'p003', title:'IoT Plant Monitor',
+    desc:'Soil moisture + DHT22 streamed to Serial monitor over WiFi simulation. Alerts when soil is too dry. Perfect for smart gardening projects.',
+    author:'Arjun K.', authorInit:'A', board:'ESP32',
+    tags:['Soil Sensor','DHT22','IoT','WiFi'],
+    stars:211, forks:67, views:2100, date:'2024-11-25',
+    filter:['all','esp32','sensor','iot'],
+    color:'#0a1a05',
+    code:`#include <DHT.h>
+
+#define DHT_PIN   4
+#define SOIL_PIN  A0
+#define DRY_THRESHOLD 400
+
+DHT dht(DHT_PIN, DHT22);
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  Serial.println("Plant Monitor Ready!");
+}
+
+void loop() {
+  int soil = analogRead(SOIL_PIN);
+  float temp = dht.readTemperature();
+  float hum  = dht.readHumidity();
+  
+  Serial.print("Soil: "); Serial.println(soil);
+  Serial.print("Temp: "); Serial.println(temp);
+  
+  if (soil < DRY_THRESHOLD) {
+    Serial.println("⚠ WATER ME!");
+  }
+  delay(3000);
+}`,
+  },
+  {
+    id:'p004', title:'RFID Smart Door Lock',
+    desc:'RC522 RFID scanner with servo-controlled deadbolt and LED status indicators. Stores authorized card UIDs and logs access attempts.',
+    author:'Sneha T.', authorInit:'S', board:'Arduino Uno',
+    tags:['RFID','Servo','Security','Intermediate'],
+    stars:175, forks:44, views:1580, date:'2024-11-20',
+    filter:['all','arduino'],
+    color:'#1a0a30',
+    code:`#include <SPI.h>
+#include <MFRC522.h>
+#include <Servo.h>
+
+MFRC522 rfid(10, 9);
+Servo lockServo;
+
+String authorizedUID = "4A2B9CD1";
+
+void setup() {
+  Serial.begin(9600);
+  SPI.begin();
+  rfid.PCD_Init();
+  lockServo.attach(6);
+  lockServo.write(0); // locked
+  Serial.println("RFID Lock Ready");
+}
+
+void loop() {
+  if (!rfid.PICC_IsNewCardPresent()) return;
+  if (!rfid.PICC_ReadCardSerial()) return;
+  
+  String uid = "";
+  for (byte i = 0; i < rfid.uid.size; i++)
+    uid += String(rfid.uid.uidByte[i], HEX);
+  
+  if (uid == authorizedUID) {
+    Serial.println("✓ ACCESS GRANTED");
+    lockServo.write(90);
+    delay(3000);
+    lockServo.write(0);
+  } else {
+    Serial.println("✗ ACCESS DENIED");
+  }
+}`,
+  },
+  {
+    id:'p005', title:'RGB LED Mood Lamp',
+    desc:'FastLED WS2812B strip with multiple animation modes. Button cycles through rainbow, breathing, color wipe and fire effects.',
+    author:'Dev P.', authorInit:'D', board:'Arduino Nano',
+    tags:['FastLED','WS2812B','Button','Beginner'],
+    stars:89, forks:17, views:720, date:'2024-11-15',
+    filter:['all','arduino','beginner'],
+    color:'#15051a',
+    code:`#include <FastLED.h>
+
+#define NUM_LEDS 12
+#define DATA_PIN  6
+#define BTN_PIN   2
+
+CRGB leds[NUM_LEDS];
+int mode = 0;
+volatile bool changed = false;
+
+void onBtn() { changed = true; mode = (mode+1)%4; }
+
+void setup() {
+  FastLED.addLeds<WS2812B,DATA_PIN,GRB>(leds, NUM_LEDS);
+  FastLED.setBrightness(80);
+  pinMode(BTN_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(BTN_PIN), onBtn, FALLING);
+}
+
+void loop() {
+  switch(mode) {
+    case 0: rainbow(); break;
+    case 1: breathing(); break;
+    case 2: colorWipe(); break;
+    case 3: fire(); break;
+  }
+}`,
+  },
+  {
+    id:'p006', title:'Ultrasonic Parking Sensor',
+    desc:'HC-SR04 measures distance and controls a buzzer beep rate — slow when far, fast when close, continuous when very close. LCD shows distance.',
+    author:'Anjali R.', authorInit:'A', board:'Arduino Uno',
+    tags:['HC-SR04','Buzzer','LCD','Beginner'],
+    stars:134, forks:29, views:1050, date:'2024-11-10',
+    filter:['all','arduino','sensor','beginner'],
+    color:'#0a1525',
+    code:`#include <LiquidCrystal_I2C.h>
+#include <NewPing.h>
+
+#define TRIG_PIN  9
+#define ECHO_PIN 10
+#define BUZZ_PIN  8
+#define MAX_DIST 200
+
+NewPing sonar(TRIG_PIN, ECHO_PIN, MAX_DIST);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init(); lcd.backlight();
+  pinMode(BUZZ_PIN, OUTPUT);
+}
+
+void loop() {
+  int dist = sonar.ping_cm();
+  
+  lcd.setCursor(0,0); lcd.print("Distance:      ");
+  lcd.setCursor(0,1); lcd.print(dist); lcd.print(" cm    ");
+  Serial.println(dist);
+  
+  if (dist < 10) tone(BUZZ_PIN, 1000);
+  else if (dist < 30) { tone(BUZZ_PIN,800); delay(100); noTone(BUZZ_PIN); }
+  else if (dist < 60) { tone(BUZZ_PIN,600); delay(300); noTone(BUZZ_PIN); }
+  else noTone(BUZZ_PIN);
+  
+  delay(100);
+}`,
+  },
+  {
+    id:'p007', title:'MPU6050 Gyro Controller',
+    desc:'Use MPU6050 tilt data to control servo position and LED brightness. Tilt left/right to rotate servo. Tilt forward/back for LED brightness.',
+    author:'Kiran B.', authorInit:'K', board:'Arduino Uno',
+    tags:['MPU6050','Servo','PWM','Advanced'],
+    stars:76, forks:12, views:640, date:'2024-11-05',
+    filter:['all','arduino','sensor'],
+    color:'#1a1520',
+    code:`#include <MPU6050.h>
+#include <Servo.h>
+
+MPU6050 mpu;
+Servo myServo;
+
+void setup() {
+  Serial.begin(9600);
+  Wire.begin();
+  mpu.initialize();
+  myServo.attach(9);
+  pinMode(11, OUTPUT); // LED
+  Serial.println("Gyro Controller Ready");
+}
+
+void loop() {
+  int16_t ax, ay, az, gx, gy, gz;
+  mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  
+  // Map tilt to servo angle
+  int angle = map(ax, -17000, 17000, 0, 180);
+  angle = constrain(angle, 0, 180);
+  myServo.write(angle);
+  
+  // Map tilt to brightness
+  int bright = map(ay, -17000, 17000, 0, 255);
+  analogWrite(11, abs(bright));
+  
+  Serial.print("Angle: "); Serial.print(angle);
+  Serial.print(" Bright: "); Serial.println(abs(bright));
+  delay(50);
+}`,
+  },
+  {
+    id:'p008', title:'DS18B20 Multi-Sensor Logger',
+    desc:'Read temperature from 3 DS18B20 waterproof sensors on a single wire. Logs all readings to serial in CSV format for data analysis.',
+    author:'Meena V.', authorInit:'M', board:'Arduino Nano',
+    tags:['DS18B20','OneWire','Logging','Intermediate'],
+    stars:63, forks:9, views:520, date:'2024-10-30',
+    filter:['all','arduino','sensor'],
+    color:'#1a0a05',
+    code:`#include <OneWire.h>
+#include <DallasTemperature.h>
+
+#define ONE_WIRE_BUS 4
+
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+
+void setup() {
+  Serial.begin(9600);
+  sensors.begin();
+  int count = sensors.getDeviceCount();
+  Serial.print("Found "); Serial.print(count);
+  Serial.println(" sensors");
+  Serial.println("Time,Sensor1,Sensor2,Sensor3");
+}
+
+void loop() {
+  sensors.requestTemperatures();
+  Serial.print(millis()); Serial.print(",");
+  Serial.print(sensors.getTempCByIndex(0)); Serial.print(",");
+  Serial.print(sensors.getTempCByIndex(1)); Serial.print(",");
+  Serial.println(sensors.getTempCByIndex(2));
+  delay(5000);
+}`,
+  },
+  {
+    id:'p009', title:'IR Remote Controlled Car',
+    desc:'Control a robot car with TV remote! Uses IRremote library to decode NEC signals and control 4 DC motors via L298N driver board.',
+    author:'Ravi S.', authorInit:'R', board:'Arduino Uno',
+    tags:['IRremote','Motor','Robot','Intermediate'],
+    stars:188, forks:52, views:1890, date:'2024-10-25',
+    filter:['all','arduino'],
+    color:'#0f0f1a',
+    code:`#include <IRremote.h>
+
+#define IR_PIN  11
+#define M1A 2
+#define M1B 3
+#define M2A 4
+#define M2B 5
+
+IRrecv irRecv(IR_PIN);
+decode_results results;
+
+#define BTN_FWD  0xFF18E7
+#define BTN_BACK 0xFF4AB5
+#define BTN_LEFT 0xFF10EF
+#define BTN_RIGHT 0xFF5AA5
+#define BTN_STOP 0xFF38C7
+
+void setup() {
+  Serial.begin(9600);
+  irRecv.enableIRIn();
+  // Setup motor pins
+  for(int p=2;p<=5;p++) pinMode(p,OUTPUT);
+  Serial.println("IR Car Ready!");
+}
+
+void loop() {
+  if (irRecv.decode(&results)) {
+    switch(results.value) {
+      case BTN_FWD:   forward(); break;
+      case BTN_BACK:  backward(); break;
+      case BTN_LEFT:  turnLeft(); break;
+      case BTN_RIGHT: turnRight(); break;
+      case BTN_STOP:  stopCar(); break;
+    }
+    irRecv.resume();
+  }
+}`,
+  },
+  {
+    id:'p010', title:'BME280 Weather Dashboard',
+    desc:'Complete weather station using BME280 sensor. Displays temperature, humidity, pressure and calculated altitude on serial plotter in real-time.',
+    author:'Fatima N.', authorInit:'F', board:'Arduino Uno',
+    tags:['BME280','I2C','Weather','Beginner'],
+    stars:110, forks:23, views:890, date:'2024-10-20',
+    filter:['all','arduino','sensor','beginner'],
+    color:'#050f1a',
+    code:`#include <Wire.h>
+#include <Adafruit_BME280.h>
+
+Adafruit_BME280 bme;
+
+void setup() {
+  Serial.begin(9600);
+  if (!bme.begin(0x76)) {
+    Serial.println("BME280 not found!");
+    while(1);
+  }
+  Serial.println("Time,Temp,Humidity,Pressure,Altitude");
+}
+
+void loop() {
+  float temp = bme.readTemperature();
+  float hum  = bme.readHumidity();
+  float pres = bme.readPressure() / 100.0;
+  float alt  = bme.readAltitude(1013.25);
+  
+  Serial.print(millis()/1000.0); Serial.print(",");
+  Serial.print(temp); Serial.print(",");
+  Serial.print(hum); Serial.print(",");
+  Serial.print(pres); Serial.print(",");
+  Serial.println(alt);
+  delay(2000);
+}`,
+  },
+  {
+    id:'p011', title:'Piano with Piezo Buzzer',
+    desc:'8-key piano using push buttons and piezo buzzer. Plays do-re-mi scale with correct frequencies. Can record and replay a short melody.',
+    author:'Sanjay P.', authorInit:'S', board:'Arduino Mega',
+    tags:['Buzzer','Button','Music','Beginner'],
+    stars:95, forks:31, views:1100, date:'2024-10-15',
+    filter:['all','arduino','beginner'],
+    color:'#1a1005',
+    code:`#define BUZZER 8
+int notes[] = {262,294,330,349,392,440,494,523};
+int buttons[] = {2,3,4,5,6,7,9,10};
+
+void setup() {
+  Serial.begin(9600);
+  for(int i=0;i<8;i++) {
+    pinMode(buttons[i], INPUT_PULLUP);
+  }
+  Serial.println("Piano Ready! Press buttons D2-D10");
+}
+
+void loop() {
+  for(int i=0;i<8;i++) {
+    if(digitalRead(buttons[i]) == LOW) {
+      tone(BUZZER, notes[i]);
+      Serial.print("Note: "); Serial.println(notes[i]);
+      delay(200);
+      noTone(BUZZER);
+    }
+  }
+}`,
+  },
+  {
+    id:'p012', title:'EEPROM Data Logger',
+    desc:'Log sensor readings to EEPROM so data survives power off. Logs temperature every 10 seconds, stores 100 readings. Read back on startup.',
+    author:'Vikram T.', authorInit:'V', board:'Arduino Uno',
+    tags:['EEPROM','DHT11','Logging','Advanced'],
+    stars:48, forks:8, views:380, date:'2024-10-10',
+    filter:['all','arduino','sensor'],
+    color:'#0a1a10',
+    code:`#include <EEPROM.h>
+#include <DHT.h>
+
+DHT dht(4, DHT11);
+int addr = 0;
+const int MAX_READINGS = 100;
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  
+  // Read stored data
+  Serial.println("--- Stored readings ---");
+  for(int i=0; i<MAX_READINGS; i++) {
+    int t = EEPROM.read(i);
+    if(t == 255) break; // empty
+    Serial.print("Reading "); Serial.print(i);
+    Serial.print(": "); Serial.print(t); Serial.println("°C");
+  }
+  Serial.println("--- Live logging ---");
+}
+
+void loop() {
+  float temp = dht.readTemperature();
+  EEPROM.write(addr % MAX_READINGS, (int)temp);
+  addr++;
+  Serial.print("Logged: "); Serial.println(temp);
+  delay(10000);
+}`,
+  },
+];
+
+let currentFilter = 'all';
+let currentSort   = 'popular';
+let searchQuery   = '';
+let activeProject = null;
+let visibleCount  = 8;
+
+// ── Render cards ─────────────────────────────────────────────
+function getFilteredProjects(){
+  let list = [...PROJECTS];
+  // Filter
+  if(currentFilter !== 'all'){
+    list = list.filter(p => p.filter.includes(currentFilter));
+  }
+  // Search
+  if(searchQuery){
+    const q = searchQuery.toLowerCase();
+    list = list.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.desc.toLowerCase().includes(q) ||
+      p.tags.some(t => t.toLowerCase().includes(q)) ||
+      p.board.toLowerCase().includes(q) ||
+      p.author.toLowerCase().includes(q)
+    );
+  }
+  // Sort
+  if(currentSort==='popular') list.sort((a,b)=>b.stars-a.stars);
+  else if(currentSort==='recent') list.sort((a,b)=>b.date.localeCompare(a.date));
+  else if(currentSort==='forks') list.sort((a,b)=>b.forks-a.forks);
+  else if(currentSort==='name') list.sort((a,b)=>a.title.localeCompare(b.title));
+  return list;
+}
+
+function renderGallery(){
+  const grid = document.getElementById('gallery-grid');
+  const empty = document.getElementById('empty-state');
+  const more  = document.getElementById('load-more');
+  const list  = getFilteredProjects();
+  const visible = list.slice(0, visibleCount);
+
+  grid.innerHTML = '';
+  if(!list.length){
+    empty.style.display='block'; more.classList.remove('visible'); return;
+  }
+  empty.style.display='none';
+  visible.forEach(p => grid.appendChild(makeCard(p)));
+  more.classList.toggle('visible', list.length > visibleCount);
+}
+
+function makeCard(p){
+  const card = document.createElement('div');
+  card.className = 'proj-card';
+  card.onclick = () => openProject(p);
+
+  // Tag color class
+  const tagHtml = p.tags.map(t=>{
+    const cls = t==='Beginner'?'green':t==='Advanced'?'yellow':t.includes('WiFi')||t.includes('IoT')?'cyan':'';
+    return `<span class="proj-tag ${cls}">${t}</span>`;
+  }).join('');
+
+  // Board badge color
+  const boardColor = p.board.includes('ESP')?'#a78bfa':p.board.includes('Nano')?'#34d399':'#60a5fa';
+
+  card.innerHTML = `
+    <div class="proj-thumb" style="background:${p.color}">
+      <div class="proj-thumb-svg">
+        ${makeThumbSVG(p)}
+      </div>
+      <div class="proj-board-badge" style="color:${boardColor}">${p.board}</div>
+      <button class="proj-fork-btn" onclick="event.stopPropagation();forkProjectById('${p.id}')">⑂ Fork</button>
+    </div>
+    <div class="proj-body">
+      <div class="proj-tags">${tagHtml}</div>
+      <div class="proj-title">${p.title}</div>
+      <div class="proj-desc">${p.desc.slice(0,100)}${p.desc.length>100?'...':''}</div>
+      <div class="proj-meta">
+        <div class="proj-author">
+          <div class="proj-avatar">${p.authorInit}</div>
+          <div class="proj-author-name">${p.author}</div>
+        </div>
+        <div class="proj-stats">
+          <div class="proj-stat">⭐ <span>${p.stars}</span></div>
+          <div class="proj-stat">⑂ <span>${p.forks}</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function makeThumbSVG(p){
+  // Generate a simple circuit diagram thumbnail based on tags
+  const hasOLED  = p.tags.some(t=>t.includes('OLED')||t.includes('LCD'));
+  const hasLED   = p.tags.some(t=>t.includes('LED')||t.includes('FastLED'));
+  const hasSensor= p.tags.some(t=>['DHT','MPU','BME','DS18','IR','RFID','HC-SR','Soil','NewPing'].some(s=>t.includes(s)));
+  const hasMotor = p.tags.some(t=>t.includes('Motor')||t.includes('Servo'));
+
+  return `<svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;opacity:.85">
+    <!-- Board -->
+    <rect x="10" y="20" width="80" height="120" rx="4" fill="#1a3a6e" stroke="rgba(59,130,246,.5)" stroke-width="1"/>
+    <rect x="16" y="28" width="68" height="48" rx="2" fill="#0a1a3a" stroke="rgba(59,130,246,.3)" stroke-width=".8"/>
+    <text x="50" y="48" font-family="monospace" font-size="6" fill="#60a5fa" text-anchor="middle">ARDUINO</text>
+    <text x="50" y="58" font-family="monospace" font-size="7" font-weight="bold" fill="#60a5fa" text-anchor="middle">UNO</text>
+    <!-- Wire lines from board -->
+    <line x1="90" y1="60" x2="130" y2="60" stroke="rgba(34,211,238,.6)" stroke-width="1.5"/>
+    <line x1="90" y1="75" x2="130" y2="75" stroke="rgba(52,211,153,.6)" stroke-width="1.5"/>
+    <line x1="90" y1="90" x2="130" y2="90" stroke="rgba(248,113,113,.5)" stroke-width="1.5"/>
+    <line x1="90" y1="105" x2="130" y2="105" stroke="rgba(100,100,200,.5)" stroke-width="1.5"/>
+    ${hasOLED?`
+    <!-- OLED -->
+    <rect x="130" y="40" width="60" height="40" rx="3" fill="#050510" stroke="rgba(139,92,246,.6)" stroke-width="1"/>
+    <rect x="133" y="43" width="54" height="34" rx="2" fill="#000018"/>
+    <text x="160" y="56" font-family="monospace" font-size="6" fill="#6688ff" text-anchor="middle">SimuLab</text>
+    <text x="160" y="66" font-family="monospace" font-size="5" fill="#4466cc" text-anchor="middle">OLED 0.96"</text>`:''}
+    ${hasLED?`
+    <!-- LED strip -->
+    ${[0,1,2,3,4].map((i)=>`
+      <circle cx="${140+i*18}" cy="110" r="7" fill="${['#ff4444','#44ff44','#4444ff','#ffff44','#ff44ff'][i]}22"
+        stroke="${['#ff4444','#44ff44','#4444ff','#ffff44','#ff44ff'][i]}" stroke-width="1"/>
+    `).join('')}`:''}
+    ${hasSensor?`
+    <!-- Sensor box -->
+    <rect x="200" y="50" width="50" height="36" rx="3" fill="#1a1a2e" stroke="rgba(139,92,246,.5)" stroke-width="1"/>
+    <text x="225" y="66" font-family="monospace" font-size="6" fill="#a78bfa" text-anchor="middle">SENSOR</text>
+    <text x="225" y="76" font-family="monospace" font-size="5" fill="#666" text-anchor="middle">${p.tags[0]}</text>
+    <line x1="200" y1="68" x2="140" y2="68" stroke="rgba(6,182,212,.5)" stroke-width="1" stroke-dasharray="4,2"/>`:''}
+    ${hasMotor?`
+    <!-- Motor symbol -->
+    <circle cx="220" cy="110" r="18" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+    <circle cx="220" cy="110" r="12" fill="#222" stroke="#444" stroke-width="1"/>
+    <text x="220" y="114" font-family="monospace" font-size="8" fill="#888" text-anchor="middle">M</text>`:''}
+    <!-- Ground line -->
+    <line x1="50" y1="140" x2="280" y2="140" stroke="rgba(100,100,200,.2)" stroke-width="1"/>
+  </svg>`;
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function openProject(p){
+  activeProject = p;
+  document.getElementById('modal-title').textContent = p.title;
+  document.getElementById('modal-meta').textContent  = `by ${p.author} · ${p.board} · ${new Date(p.date).toLocaleDateString()}`;
+  document.getElementById('modal-desc').textContent  = p.desc;
+  document.getElementById('modal-stars').textContent = p.stars;
+  document.getElementById('modal-forks-count').textContent = p.forks;
+  document.getElementById('modal-views').textContent = p.views + Math.floor(Math.random()*10);
+  document.getElementById('modal-author').textContent = `👤 ${p.author}`;
+
+  // Tags
+  const tagsEl = document.getElementById('modal-tags');
+  tagsEl.innerHTML = p.tags.map(t=>`<span class="proj-tag">${t}</span>`).join('');
+
+  // Syntax-highlighted code
+  const codeEl = document.getElementById('modal-code');
+  codeEl.innerHTML = syntaxHighlight(p.code);
+
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+  activeProject = null;
+}
+
+function forkProject(){
+  if(!activeProject) return;
+  // Save code to localStorage for workspace to pick up
+  localStorage.setItem('simulab-fork', JSON.stringify({
+    title: 'Fork of ' + activeProject.title,
+    code:  activeProject.code,
+    board: activeProject.board,
+  }));
+  window.location.href = 'workspace.html?fork=1';
+}
+
+function forkProjectById(id){
+  const p = PROJECTS.find(x=>x.id===id);
+  if(!p) return;
+  activeProject = p;
+  forkProject();
+}
+
+function starProject(){
+  if(!activeProject) return;
+  activeProject.stars++;
+  document.getElementById('modal-stars').textContent = activeProject.stars;
+  // Animate
+  const btn = event.target;
+  btn.textContent = '⭐ Starred!';
+  btn.style.color = '#fbbf24';
+  setTimeout(()=>btn.textContent='⭐ Star', 2000);
+}
+
+// Basic syntax highlighter
+function syntaxHighlight(code){
+  return code
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(\/\/[^\n]*)/g,'<span class="cm">$1</span>')
+    .replace(/(\/\*[\s\S]*?\*\/)/g,'<span class="cm">$1</span>')
+    .replace(/"([^"\\]|\\.)*"/g,'<span class="str">"$&"</span>'.replace('"$&"','<span class="str">$&</span>'))
+    .replace(/\b(void|int|float|double|long|char|byte|boolean|bool|const|static|volatile|unsigned|return|if|else|for|while|do|switch|case|break|continue|struct|class|true|false|new|delete|include|define)\b/g,'<span class="kw">$1</span>')
+    .replace(/\b(setup|loop|pinMode|digitalWrite|digitalRead|analogWrite|analogRead|delay|millis|Serial|Wire|SPI|attachInterrupt|tone|noTone|map|constrain|random)\b/g,'<span class="fn">$1</span>')
+    .replace(/\b(\d+\.?\d*)\b/g,'<span class="num">$1</span>');
+}
+
+// ── Filters ───────────────────────────────────────────────────
+function setFilter(f, el){
+  currentFilter = f;
+  visibleCount  = 8;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  renderGallery();
+}
+function filterGallery(){
+  searchQuery  = document.getElementById('search-input').value;
+  visibleCount = 8;
+  renderGallery();
+}
+function sortGallery(){
+  currentSort  = document.getElementById('sort-sel').value;
+  visibleCount = 8;
+  renderGallery();
+}
+function loadMore(){
+  visibleCount += 6;
+  renderGallery();
+}
+
+// ── Check if opened via fork ──────────────────────────────────
+// (workspace.html picks up localStorage fork data on load)
+
+// ── Stats animation ───────────────────────────────────────────
+function animateStats(){
+  const targets = {
+    'stat-projects': PROJECTS.length,
+    'stat-forks':    PROJECTS.reduce((a,p)=>a+p.forks,0),
+    'stat-members':  127,
+    'stat-boards':   7,
+  };
+  Object.entries(targets).forEach(([id,target])=>{
+    let cur=0; const el=document.getElementById(id);
+    const step=Math.ceil(target/30);
+    const iv=setInterval(()=>{
+      cur=Math.min(cur+step,target);
+      el.textContent=cur;
+      if(cur>=target) clearInterval(iv);
+    },30);
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────
+renderGallery();
+animateStats();
+
+// Keyboard shortcut
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeModal();
+});
+</script>
+</body>
+</html>
