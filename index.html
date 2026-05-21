@@ -869,6 +869,50 @@ const PIN_LABEL_NUM = {
 };
 
 const BOARDS = ['uno','nano','mega','esp32','esp8266','pico','stm32'];
+const PASSIVES = new Set(['res','cap','diode']);
+
+function buildGlobalAdj() {
+  const adj = {};
+  const add = (k, v) => { if(!adj[k]) adj[k]=[]; adj[k].push(v); };
+  wires.forEach(w => {
+    add(w.fc+':'+w.fp, {cid:w.tc, pid:w.tp});
+    add(w.tc+':'+w.tp, {cid:w.fc, pid:w.fp});
+  });
+  comps.forEach(c => {
+    if(c.type==='breadboard'){
+      for(let i=1;i<=30;i++){
+        ['a','b','c','d'].forEach((r,idx)=> {
+          const nxt = ['b','c','d','e'][idx];
+          add(`${c.id}:${r}${i}`, {cid:c.id, pid:`${nxt}${i}`});
+          add(`${c.id}:${nxt}${i}`, {cid:c.id, pid:`${r}${i}`});
+        });
+        ['f','g','h','i'].forEach((r,idx)=> {
+          const nxt = ['g','h','i','j'][idx];
+          add(`${c.id}:${r}${i}`, {cid:c.id, pid:`${nxt}${i}`});
+          add(`${c.id}:${nxt}${i}`, {cid:c.id, pid:`${r}${i}`});
+        });
+      }
+      ['tp','tm','bp','bm'].forEach(r => {
+        for(let i=1;i<25;i++){
+          add(`${c.id}:${r}${i}`, {cid:c.id, pid:`${r}${i+1}`});
+          add(`${c.id}:${r}${i+1}`, {cid:c.id, pid:`${r}${i}`});
+        }
+      });
+    }
+    if(PASSIVES.has(c.type)) {
+      const pins = DEFS[c.type].pins;
+      if(pins && pins.length >= 2) {
+        for(let i=0; i<pins.length; i++) {
+          for(let j=i+1; j<pins.length; j++) {
+            add(`${c.id}:${pins[i].id}`, {cid:c.id, pid:pins[j].id});
+            add(`${c.id}:${pins[j].id}`, {cid:c.id, pid:pins[i].id});
+          }
+        }
+      }
+    }
+  });
+  return adj;
+}
 
 function generateBreadboardPins() {
   const pins = [];
@@ -2318,15 +2362,7 @@ function generateCodeFromWorkspace() {
   const board = comps.find(c => BOARDS.includes(c.type));
   if (!board) return;
 
-  const adj = {};
-  wires.forEach(w => {
-    const k1 = w.fc + ':' + w.fp;
-    const k2 = w.tc + ':' + w.tp;
-    if (!adj[k1]) adj[k1] = [];
-    if (!adj[k2]) adj[k2] = [];
-    adj[k1].push({ cid: w.tc, pid: w.tp });
-    adj[k2].push({ cid: w.fc, pid: w.fp });
-  });
+  const adj = buildGlobalAdj();
 
   const connected = {};
   const boardPins = DEFS[board.type].pins || [];
@@ -2350,25 +2386,10 @@ function generateCodeFromWorkspace() {
           const c = comps.find(x => x.id === n.cid);
           if (!c) return;
 
-          if (c.type === 'res' || c.type === 'diode' || c.type === 'cap') {
-            let otherPin = null;
-            if (c.type === 'res') {
-              otherPin = n.pid === 'P1' ? 'P2' : 'P1';
-            } else if (c.type === 'diode') {
-              otherPin = n.pid === 'A' ? 'K' : 'A';
-            } else if (c.type === 'cap') {
-              otherPin = n.pid === 'P' ? 'N' : 'P';
-            }
-            if (otherPin) {
-              const passThruNode = n.cid + ':' + otherPin;
-              if (!visited.has(passThruNode)) {
-                visited.add(passThruNode);
-                q.push(passThruNode);
-              }
-            }
-          } else if (!BOARDS.includes(c.type)) {
+          if (!BOARDS.includes(c.type) && !PASSIVES.has(c.type) && c.type !== 'breadboard') {
             connected[bp.id].push({ comp: c, compPin: n.pid });
           }
+          q.push(nNode);
         }
       });
     }
@@ -3036,18 +3057,7 @@ function startAVR(hexStr){
 }
 
 function buildWatchers(){
-  const PASSIVES = new Set(['res','cap','diode']);
-
-  // Build adjacency: compId:pinId -> [{compId, pinId}]
-  function buildAdj() {
-    const adj = {};
-    const add = (k, v) => { if(!adj[k]) adj[k]=[]; adj[k].push(v); };
-    wires.forEach(w => {
-      add(w.fc+':'+w.fp, {cid:w.tc, pid:w.tp});
-      add(w.tc+':'+w.tp, {cid:w.fc, pid:w.fp});
-    });
-    return adj;
-  }
+  // Global buildGlobalAdj handles adjacency and breadboard routing
 
   // BFS from a component pin → find connected board pin
   // Traverses through passives, never recurses
@@ -3065,22 +3075,13 @@ function buildWatchers(){
         if(!c) continue;
         // Found a board — return this pin
         if(BOARDS.includes(c.type)) return {cid:n.cid, pid:n.pid};
-        // If passive, enqueue its OTHER pins to continue traversal
-        if(PASSIVES.has(c.type)) {
-          const def = DEFS[c.type];
-          if(def && def.pins) {
-            def.pins.forEach(p => {
-              const k2 = n.cid+':'+p.id;
-              if(!visited.has(k2)) queue.push({cid:n.cid, pid:p.id});
-            });
-          }
-        }
+        queue.push({cid:n.cid, pid:n.pid});
       }
     }
     return null;
   }
 
-  const adj = buildAdj();
+  const adj = buildGlobalAdj();
   const out = [];
 
   comps.forEach(cmp => {
@@ -3434,7 +3435,7 @@ function validateWires() {
   const issues = [];
   // Check every placed component has VCC and GND wired
   comps.forEach(c => {
-    if(BOARDS.includes(c.type)) return; // boards don't need external VCC
+    if(BOARDS.includes(c.type) || c.type==='breadboard') return; // boards and breadboards don't need external VCC
     const def = DEFS[c.type]; if(!def) return;
     const hasPwr = def.pins?.find(p => p.t==='pwr');
     const hasGnd = def.pins?.find(p => p.t==='gnd');
@@ -5062,21 +5063,13 @@ function showGpioDebug() {
   panel.classList.add('show');
 
   // Dump all wires with full passive BFS tracing
-  const PASSIVES = new Set(['res','cap','diode']);
-  const adj = {};
-  const add = (k, v) => { if(!adj[k]) adj[k]=[]; adj[k].push(v); };
-  wires.forEach(w => {
-    add(w.fc+':'+w.fp, {cid:w.tc, pid:w.tp});
-    add(w.tc+':'+w.tp, {cid:w.fc, pid:w.fp});
-  });
+  const adj = buildGlobalAdj();
 
   function traceToBoardPin(startCid, startPinId) {
     const queue = [{cid:startCid, pid:startPinId}];
     const visited = new Set([startCid+':'+startPinId]);
     while(queue.length) {
       const {cid, pid} = queue.shift();
-      const c = comps.find(x => x.id===cid);
-      if(c && BOARDS.includes(c.type)) return {cid, pid};
       const neighbors = adj[cid+':'+pid] || [];
       for(const n of neighbors) {
         const key = n.cid+':'+n.pid;
@@ -5085,15 +5078,7 @@ function showGpioDebug() {
         const nc = comps.find(x => x.id===n.cid);
         if(!nc) continue;
         if(BOARDS.includes(nc.type)) return {cid:n.cid, pid:n.pid};
-        if(PASSIVES.has(nc.type)) {
-          const def = DEFS[nc.type];
-          if(def && def.pins) {
-            def.pins.forEach(p => {
-              const k2 = n.cid+':'+p.id;
-              if(!visited.has(k2)) queue.push({cid:n.cid, pid:p.id});
-            });
-          }
-        }
+        queue.push({cid:n.cid, pid:n.pid});
       }
     }
     return null;
