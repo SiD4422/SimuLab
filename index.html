@@ -648,6 +648,7 @@ body.light-mode .pcomp-header {
       <div class="pitem" draggable="true" data-type="lcd"     ondragstart="ds(event,'lcd')"    onclick="clickPlace('lcd')">    <span class="pitem-ico">📟</span><span class="pitem-name">LCD 16×2</span></div>
       <div class="pitem" draggable="true" data-type="servo"   ondragstart="ds(event,'servo')"  onclick="clickPlace('servo')">  <span class="pitem-ico">⚙️</span><span class="pitem-name">Servo SG90</span></div>
       <div class="pitem" draggable="true" data-type="rgb"     ondragstart="ds(event,'rgb')"    onclick="clickPlace('rgb')">    <span class="pitem-ico">🌈</span><span class="pitem-name">RGB LED</span></div>
+      <div class="pitem" draggable="true" data-type="motor"   ondragstart="ds(event,'motor')"  onclick="clickPlace('motor')">  <span class="pitem-ico">🛞</span><span class="pitem-name">DC Motor</span></div>
 
       <div class="pcat">Input</div>
       <div class="pitem" draggable="true" data-type="btn"     ondragstart="ds(event,'btn')"    onclick="clickPlace('btn')">    <span class="pitem-ico">🔘</span><span class="pitem-name">Push Button</span></div>
@@ -1492,6 +1493,10 @@ const DEFS = {
   servo:{label:'SG90 Servo',w:68,h:76,hidelabels:true,
     pins:[{id:'GND',t:'gnd',x:16,y:68,l:''},{id:'VCC',t:'pwr',x:28,y:68,l:''},{id:'SIG',t:'pwm',x:40,y:68,l:''}],
     build(el){ buildServo(el); }
+  },
+  motor:{label:'DC Motor', w:60, h:80, hidelabels:true,
+    pins:[{id:'M1',t:'pwr',x:20,y:70,l:''},{id:'M2',t:'gnd',x:40,y:70,l:''}],
+    build(el){ buildMotor(el); }
   },
 
   // ── Input ──
@@ -2760,7 +2765,7 @@ function updatePropertiesPanel(id) {
   const body = document.getElementById('prop-body');
   if (!id) { panel.style.display = 'none'; return; }
   const c = comps.find(x => x.id === id);
-  if (!c || !['res', 'dht22'].includes(c.type)) { panel.style.display = 'none'; return; }
+  if (!c || !['res', 'dht22', 'hcsr04', 'ldr', 'mq2', 'soil', 'pir'].includes(c.type)) { panel.style.display = 'none'; return; }
   
   if (!c.props) c.props = {};
   panel.style.display = 'block';
@@ -2814,6 +2819,43 @@ function updatePropertiesPanel(id) {
     };
     document.getElementById('prop-temp-val').addEventListener('input', updateDHT);
     document.getElementById('prop-hum-val').addEventListener('input', updateDHT);
+  }
+
+  const renderSingleSlider = (propName, label, min, max, step, unit) => {
+    if (typeof c.props[propName] === 'undefined') c.props[propName] = (min+max)/2;
+    body.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <div style="display:flex; justify-content:space-between;"><span>${label}:</span> <span id="prop-${propName}-lbl">${c.props[propName]}${unit}</span></div>
+        <input type="range" id="prop-${propName}-val" min="${min}" max="${max}" step="${step}" value="${c.props[propName]}">
+      </div>
+    `;
+    const updateVal = () => {
+      c.props[propName] = parseFloat(document.getElementById(`prop-${propName}-val`).value);
+      document.getElementById(`prop-${propName}-lbl`).textContent = c.props[propName] + unit;
+      if (typeof updateSimulatedSensors === 'function') updateSimulatedSensors(c);
+      triggerAutoSync();
+    };
+    document.getElementById(`prop-${propName}-val`).addEventListener('input', updateVal);
+  };
+
+  if (c.type === 'hcsr04') renderSingleSlider('dist', 'Distance', 2, 400, 1, ' cm');
+  if (c.type === 'ldr')    renderSingleSlider('lux', 'Light Level', 0, 1023, 1, ' lux');
+  if (c.type === 'mq2')    renderSingleSlider('gas', 'Gas Level', 50, 900, 1, ' ppm');
+  if (c.type === 'soil')   renderSingleSlider('soil', 'Moisture', 0, 100, 1, '%');
+
+  if (c.type === 'pir') {
+    if (typeof c.props.pir === 'undefined') c.props.pir = false;
+    body.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span>Motion Detected:</span>
+        <input type="checkbox" id="prop-pir-val" ${c.props.pir ? 'checked' : ''} style="cursor:pointer">
+      </div>
+    `;
+    document.getElementById('prop-pir-val').addEventListener('change', (e) => {
+      c.props.pir = e.target.checked;
+      if (typeof updateSimulatedSensors === 'function') updateSimulatedSensors(c);
+      triggerAutoSync();
+    });
   }
 }
 
@@ -3201,6 +3243,19 @@ function applyGPIO(w, high, pwm8bit) {
   // PWM value: 0-255, undefined = digital
   const brightness = (pwm8bit !== undefined) ? pwm8bit / 255 : (high ? 1 : 0);
 
+  if(w.compType === 'motor') {
+    const shaft = document.getElementById('mshaft-' + w.compId);
+    if(shaft) {
+      if(!shaft.dataset.ang) shaft.dataset.ang = 0;
+      if(high || pwm8bit > 0) {
+        let speed = (pwm8bit !== undefined) ? (pwm8bit / 255) * 20 : 15;
+        let ang = parseFloat(shaft.dataset.ang) + speed;
+        shaft.dataset.ang = ang;
+        shaft.setAttribute('transform', `translate(30,10) rotate(${ang})`);
+      }
+    }
+  }
+
   if(w.compType.startsWith('led-')) {
     if(w.pinId==='A'||w.pinId==='R'||w.pinId==='G'||w.pinId==='B') {
       const g = document.getElementById('ledg-' + w.compId);
@@ -3356,10 +3411,15 @@ function updateSimulatedSensors(c) {
   if(!sensorState[c.id]) getSensorVal(c.type, c.id);
   const s = sensorState[c.id];
   s.userControlled = true;
-  if (c.type === 'dht22') {
-    s.temp = c.props.temp;
-    s.hum = c.props.hum;
+  if (c.type === 'dht22' || c.type === 'dht11' || c.type === 'ds18b20') {
+    if(c.props.temp !== undefined) s.temp = c.props.temp;
+    if(c.props.hum !== undefined) s.hum = c.props.hum;
   }
+  if (c.type === 'hcsr04') s.dist = c.props.dist;
+  if (c.type === 'ldr')    s.lux = c.props.lux;
+  if (c.type === 'mq2')    s.gas = c.props.gas;
+  if (c.type === 'soil')   s.soil = c.props.soil;
+  if (c.type === 'pir')    s.pir = c.props.pir;
 }
 
 // Returns 0-1023 ADC value for a sensor type
