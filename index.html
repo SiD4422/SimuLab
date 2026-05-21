@@ -505,28 +505,35 @@ body.wiring * { cursor:crosshair !important }
    LIGHT MODE THEME
 ═══════════════════════════════════════════ */
 body.light-mode {
-  --bg0: #f0f4f8;
-  --bg1: #ffffff;
-  --bg2: #e8edf2;
-  --bg3: #d1d9e0;
-  --text1: #1e293b;
-  --text2: #475569;
-  --text3: #64748b;
-  --border: rgba(0,0,0,0.12);
-  --accent: #6366f1;
+  --bg:        #f8fafc;
+  --bg2:       #ffffff;
+  --bg3:       #f1f5f9;
+  --bg4:       #e2e8f0;
+  --bg5:       #cbd5e1;
+  --line:      rgba(0,0,0,0.08);
+  --line2:     rgba(0,0,0,0.15);
+  --text:      #0f172a;
+  --text2:     #475569;
+  --text3:     #94a3b8;
+  --purple:    #6366f1;
+  --purple2:   #4f46e5;
+  --purple3:   #4338ca;
+  --green:     #10b981;
+  --green2:    #059669;
+  --red:       #ef4444;
+  --yellow:    #f59e0b;
+  --cyan:      #0ea5e9;
+  --orange:    #f97316;
 }
-body.light-mode #canvas-wrap {
-  background: #f8fafc;
-}
-body.light-mode .pitem {
-  background: rgba(0,0,0,0.04);
-  color: #1e293b;
-}
-body.light-mode .pcat {
-  color: #6366f1;
-}
+body.light-mode .pitem { background: var(--bg3) }
+body.light-mode .pitem:hover { background: var(--bg4) }
+body.light-mode .pcat { color: var(--purple) }
+body.light-mode .tb-logo-name { color: #fff }
+body.light-mode .tb-project-name { color: rgba(255,255,255,0.9) }
+body.light-mode .tb-board-select { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3) }
+body.light-mode .tb-status { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3) }
 body.light-mode #topbar {
-  background: linear-gradient(90deg, #4f46e5, #6366f1);
+  background: linear-gradient(90deg, var(--purple2), var(--purple));
 }
 </style>
 </head>
@@ -823,10 +830,12 @@ function toggleTheme() {
     body.classList.remove('light-mode');
     if(btn) btn.textContent = '☀️ Light';
     localStorage.setItem('simulab-theme', 'dark');
+    if(typeof monaco !== 'undefined' && typeof monacoEditor !== 'undefined') monaco.editor.setTheme('simulab-dark');
   } else {
     body.classList.add('light-mode');
     if(btn) btn.textContent = '🌙 Dark';
     localStorage.setItem('simulab-theme', 'light');
+    if(typeof monaco !== 'undefined' && typeof monacoEditor !== 'undefined') monaco.editor.setTheme('vs');
   }
 }
 // Apply saved theme on load
