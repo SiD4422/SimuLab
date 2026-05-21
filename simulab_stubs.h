@@ -360,11 +360,11 @@ struct DHT {
   void begin() { sim_cmd("DHT_INIT"); }
   float readTemperature(bool fahrenheit=false) {
     // Read from fixed SRAM address that JS pre-writes every animation frame
-    float val = (float)SIM_TEMP_ADDR - 40.0f;
+    float val = (float)GPIOR1 - 40.0f;
     return fahrenheit ? (val * 1.8f + 32.0f) : val;
   }
   float readHumidity() {
-    return (float)SIM_HUM_ADDR;
+    return (float)GPIOR2;
   }
   bool isnan(float v) { return false; }
 };
