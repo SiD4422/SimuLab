@@ -2060,6 +2060,31 @@ function buildServo(el){
 </svg>`;
 }
 
+function buildMotor(el) {
+  const cid = el.dataset.cid;
+  el.style.cssText += ';background:transparent;border:none;overflow:visible';
+  el.innerHTML += `
+<svg viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%">
+  <!-- Motor Body -->
+  <rect x="5" y="25" width="50" height="40" rx="4" fill="#a1a1aa" stroke="#52525b" stroke-width="2"/>
+  <rect x="15" y="25" width="30" height="40" fill="#d4d4d8"/>
+  <text x="30" y="48" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="#3f3f46">MOTOR</text>
+  <!-- Pins -->
+  <rect x="18" y="65" width="4" height="10" fill="#eab308"/>
+  <rect x="38" y="65" width="4" height="10" fill="#eab308"/>
+  <!-- Shaft Housing -->
+  <rect x="22" y="15" width="16" height="10" fill="#71717a" stroke="#3f3f46" stroke-width="1"/>
+  <!-- Spinning Shaft Assembly -->
+  <g id="mshaft-${cid}" transform="translate(30,10)">
+    <circle cx="0" cy="0" r="10" fill="#e4e4e7" stroke="#52525b" stroke-width="1"/>
+    <!-- Propeller / Indicator -->
+    <path d="M -8 -8 L 8 8 M -8 8 L 8 -8" stroke="#3b82f6" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="3" fill="#1d4ed8"/>
+  </g>
+</svg>
+  `;
+}
+
 function buildOLED(el){
   const cid = el.dataset.cid;
   el.style.cssText+=';background:transparent;border:none;overflow:visible';
