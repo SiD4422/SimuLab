@@ -447,6 +447,19 @@ html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--text
 /* Plotter pane */
 #plot-pane { flex:1; display:none; flex-direction:column; overflow:hidden; padding:12px }
 #plot-pane.show { display:flex }
+
+#ai-pane { flex:1; display:none; flex-direction:column; overflow:hidden; background:var(--bg2); font-family:var(--sans); }
+#ai-pane.show { display:flex }
+#ai-chat { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+.ai-msg { padding:8px 12px; border-radius:6px; max-width:90%; font-size:13px; line-height:1.4; word-wrap:break-word; }
+.ai-msg.user { background:var(--accent); color:#fff; align-self:flex-end; }
+.ai-msg.ai { background:var(--bg3); color:var(--text1); align-self:flex-start; border:1px solid var(--line2); }
+.ai-msg code { font-family:monospace; background:#000; padding:2px 4px; border-radius:3px; }
+.ai-msg pre { background:#000; padding:8px; border-radius:4px; overflow-x:auto; margin-top:4px; }
+#ai-input-area { display:flex; padding:8px; border-top:1px solid var(--line); background:var(--bg1); }
+#ai-input { flex:1; padding:8px; border-radius:4px; border:1px solid var(--line2); background:var(--bg3); color:var(--text1); outline:none; }
+#ai-btn { padding:8px 16px; margin-left:8px; background:var(--accent); border:none; border-radius:4px; color:#fff; cursor:pointer; font-weight:600; }
+#ai-btn:hover { filter:brightness(1.1); }
 #guide-pane { flex:1; display:none; flex-direction:column; overflow-y:auto; padding:16px; background:var(--bg1) }
 #guide-pane.show { display:flex }
 #plot-canvas { width:100%; flex:1; border:1px solid var(--line); border-radius:6px; background:var(--bg) }
@@ -743,6 +756,7 @@ body.light-mode .pcomp-header {
       <div class="ptab"     id="tab-serial" onclick="showPane('serial')">Serial</div>
       <div class="ptab"     id="tab-plot"   onclick="showPane('plot')">Plotter</div>
       <div class="ptab"     id="tab-guide"  onclick="showPane('guide')">Pin Guide</div>
+      <div class="ptab"     id="tab-ai"     onclick="showPane('ai')">✨ AI Copilot</div>
     </div>
 
     <!-- Code -->
@@ -765,7 +779,10 @@ body.light-mode .pcomp-header {
       <!-- Hidden textarea for compatibility -->
       <textarea id="code-editor" style="display:none" spellcheck="false"></textarea>
       <div id="err-panel">
-        <div class="err-hdr">✕ Compile Errors</div>
+        <div class="err-hdr" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>✕ Compile Errors</span>
+          <button onclick="triggerAIForError()" style="background:var(--accent); color:#fff; border:none; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:11px;">✨ Ask AI to Fix</button>
+        </div>
         <div id="err-body"></div>
       </div>
     </div>
@@ -817,6 +834,21 @@ body.light-mode .pcomp-header {
         <!-- populated dynamically -->
       </div>
     </div>
+
+    <!-- AI Assistant -->
+    <div id="ai-pane">
+      <div style="padding:8px; border-bottom:1px solid var(--line); background:var(--bg1); display:flex; gap:8px; align-items:center;">
+        <label style="color:var(--text3); font-size:12px;">Gemini API Key:</label>
+        <input type="password" id="ai-apikey" placeholder="Paste key here" style="flex:1; padding:4px; border-radius:4px; border:1px solid var(--line2); background:var(--bg3); color:var(--text1);" onchange="localStorage.setItem('gemini_key', this.value)">
+      </div>
+      <div id="ai-chat">
+        <div class="ai-msg ai">Hello! I am your SimuLab AI Copilot. Paste your Gemini API key above and ask me to review your circuit, write code, or explain errors!</div>
+      </div>
+      <div id="ai-input-area">
+        <input type="text" id="ai-input" placeholder="Ask AI to write code or explain..." onkeypress="if(event.key==='Enter') sendAI()">
+        <button id="ai-btn" onclick="sendAI()">Send</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -844,6 +876,7 @@ body.light-mode .pcomp-header {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 <script src="js/avr8js.bundle.js"></script>
 <script src="js/simulator.js"></script>
+<script src="js/aiCopilot.js"></script>
 
 <script>
 'use strict';
@@ -4396,7 +4429,7 @@ function hideErr(){
 
 // ── Pane switcher ──────────────────────────────────────────────
 function showPane(name){
-  ['code','serial','plot','guide'].forEach(p=>{
+  ['code','serial','plot','guide','ai'].forEach(p=>{
     const pane = document.getElementById(p+'-pane');
     const tab = document.getElementById('tab-'+p);
     if(pane) pane.classList.toggle('show',p===name);
