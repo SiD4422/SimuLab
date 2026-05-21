@@ -575,6 +575,7 @@ body.light-mode .pcomp-header {
     <button class="btn btn-plain" onclick="newProject()">+ New</button>
     <button class="btn btn-plain" onclick="saveProject()" title="Save locally (Ctrl+S)">💾 Save</button>
     <button class="btn btn-plain" onclick="cloudSaveProject()" title="Save to cloud">☁️ Cloud</button>
+    <button class="btn btn-plain" onclick="shareProject()" title="Get shareable link">🔗 Share</button>
     <button class="btn btn-ghost" onclick="toggleCloudPanel()" title="My cloud projects">📁 Projects</button>
     <div id="auth-user" style="display:flex;align-items:center;gap:6px">
       <img id="auth-avatar" src="" style="display:none;width:24px;height:24px;border-radius:50%;border:1px solid var(--line2)"/>
@@ -4525,6 +4526,32 @@ async function cloudSaveProject(){
   if(id){
     slog('sys','✓ Saved to cloud: '+name);
     toggleCloudPanel();
+  }
+}
+
+async function shareProject(){
+  if(typeof saveToCloud!=='function' || !window._fb){
+    slog('warn', 'Firebase not configured.');
+    alert('Firebase not configured. Please see js/firebase.js');
+    return;
+  }
+  if (!document.getElementById('auth-btn') || !document.getElementById('auth-btn').textContent.includes('Sign Out')) {
+    alert('You must be signed in to share a project.');
+    return;
+  }
+  const name=prompt('Project name to share:', projectName||'Untitled');
+  if(!name) return;
+  projectName=name;
+  document.getElementById('proj-name').textContent=name;
+  const data={comps,wires,code:getEditorValue(),board:document.getElementById('board-sel').value};
+  const id=await saveToCloud(name,data);
+  if(id){
+    const url = window.location.origin + window.location.pathname + '?id=' + id;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('🔗 Shareable link copied to clipboard!\\n\\n' + url);
+    }).catch(err => {
+      prompt('Copy this link:', url);
+    });
   }
 }
 function renameProject(){

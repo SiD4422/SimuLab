@@ -34,7 +34,7 @@ async function loadFirebase() {
   try {
     const { initializeApp }        = await import(FB_SDK.app);
     const { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = await import(FB_SDK.auth);
-    const { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, query, where, orderBy, limit } = await import(FB_SDK.firestore);
+    const { getFirestore, collection, doc, setDoc, getDocs, getDoc, deleteDoc, query, where, orderBy, limit } = await import(FB_SDK.firestore);
 
     fbApp  = initializeApp(FIREBASE_CONFIG);
     fbAuth = getAuth(fbApp);
@@ -49,7 +49,14 @@ async function loadFirebase() {
 
     // Expose to window
     window._fb = { GoogleAuthProvider, signInWithPopup, signOut,
-                   collection, doc, setDoc, getDocs, deleteDoc, query, where, orderBy, limit };
+                   collection, doc, setDoc, getDocs, getDoc, deleteDoc, query, where, orderBy, limit };
+
+    // Check for shared project in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedId = urlParams.get('id');
+    if (sharedId) {
+      setTimeout(() => loadSharedProject(sharedId), 500);
+    }
 
     console.log('Firebase loaded ✓');
     return true;
@@ -184,18 +191,36 @@ function renderCloudProjects(projects) {
 async function loadCloudProject(id) {
   if(!fbDb) return;
   try {
-    const { doc, getDoc } = await import(FB_SDK.firestore);
-    // Fallback: just reload from already-fetched list
     const projects = await loadUserProjects();
     const p = projects.find(x => x.id === id);
     if(!p) return;
     const data = JSON.parse(p.data);
-    // Load into workspace (calls global functions)
     if(typeof loadProjectData === 'function') loadProjectData(data);
     document.getElementById('proj-name').textContent = p.name;
     closeCloudPanel();
   } catch(e) {
     console.error('Load project error:', e);
+  }
+}
+
+// ── Load a Shared project by ID ───────────────────────────────
+async function loadSharedProject(id) {
+  if(!fbDb) return;
+  try {
+    const { doc, getDoc } = window._fb;
+    const docSnap = await getDoc(doc(fbDb, 'projects', id));
+    if (docSnap.exists()) {
+      const p = docSnap.data();
+      const data = JSON.parse(p.data);
+      if(typeof loadProjectData === 'function') loadProjectData(data);
+      document.getElementById('proj-name').textContent = p.name || 'Shared Project';
+      console.log('Loaded shared project:', id);
+    } else {
+      alert("Shared project not found. It may have been deleted.");
+    }
+  } catch(e) {
+    console.error('Load shared project error:', e);
+    alert("Error loading shared project: " + e.message);
   }
 }
 
