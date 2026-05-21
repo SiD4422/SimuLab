@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef ARDUINO
 typedef uint8_t  byte;
 typedef uint8_t  boolean;
 typedef uint16_t word;
@@ -26,10 +27,15 @@ typedef uint16_t word;
 #define A4 18
 #define A5 19
 #define LED_BUILTIN 13
+#endif
 #define SSD1306_SWITCHCAPVCC 2
 #define WHITE 1
 #define BLACK 0
+#define SSD1306_WHITE 1
+#define SSD1306_BLACK 0
+#define SSD1306_INVERSE 2
 
+#ifndef ARDUINO
 void delay(unsigned long ms) {
   for(unsigned long i=0;i<ms;i++)
     for(volatile uint16_t j=0;j<2000;j++);
@@ -68,6 +74,7 @@ void analogWrite(uint8_t pin,uint8_t val){}
 long random(long mx){return rand()%mx;}
 long map(long x,long a,long b,long c,long d){return (x-a)*(d-c)/(b-a)+c;}
 long constrain(long x,long lo,long hi){return x<lo?lo:(x>hi?hi:x);}
+#endif
 
 static void uart_init(uint32_t baud){
   uint16_t ubrr=16000000/16/baud-1;
@@ -75,11 +82,21 @@ static void uart_init(uint32_t baud){
   UCSR0B=(1<<TXEN0)|(1<<RXEN0);
   UCSR0C=(1<<UCSZ01)|(1<<UCSZ00);
 }
-static void uart_putc(char c){ while(!(UCSR0A&(1<<UDRE0))); UDR0=c; }
+static void uart_putc(char c){
+  if (!(UCSR0B & (1 << TXEN0))) {
+    UCSR0B |= (1 << TXEN0);
+  }
+  while(!(UCSR0A&(1<<UDRE0))); UDR0=c;
+}
 static void uart_puts(const char* s){ while(*s) uart_putc(*s++); }
 static void uart_nl(){ uart_putc(10); }
 static void uart_putint(long v){ char b[16]; sprintf(b,"%ld",v); uart_puts(b); }
-static void uart_putfloat(float v){ char b[16]; sprintf(b,"%.2f",(double)v); uart_puts(b); }
+static void uart_putfloat(float v){
+  if(v<0){ uart_putc('-'); v=-v; }
+  long ip=(long)v;
+  long fp=(long)((v-ip)*100+0.5);
+  char b[32]; sprintf(b,"%ld.%02ld",ip,fp); uart_puts(b);
+}
 
 /* SIM channel — sends visual commands to workspace.html
    Format: <<SIM:COMMAND>>\n  */
@@ -88,6 +105,7 @@ static void sim_cmd(const char* cmd){
   uart_putc(62); uart_putc(62); uart_putc(10);
 }
 
+#ifndef ARDUINO
 struct SerialClass {
   void begin(uint32_t baud){ uart_init(baud); }
   void print(const char* s){ uart_puts(s); }
@@ -99,9 +117,11 @@ struct SerialClass {
   void println(long v){ uart_putint(v); uart_nl(); }
   void println(int v){ uart_putint((long)v); uart_nl(); }
   void println(float v, int d=2){ uart_putfloat(v); uart_nl(); }
+  void println(double v, int d=2){ uart_putfloat((float)v); uart_nl(); }
   void println(){ uart_nl(); }
 };
 SerialClass Serial;
+#endif
 
 struct TwoWire {
   void begin(){}
@@ -133,11 +153,23 @@ struct Adafruit_SSD1306 {
   }
   void print(long v){ char b[16]; sprintf(b,"%ld",v); print(b); }
   void print(int v){ print((long)v); }
-  void print(float v,int d=2){ char b[16]; sprintf(b,"%.2f",(double)v); print(b); }
+  void print(float v,int d=2){
+    if(v<0){ print("-"); v=-v; }
+    long ip=(long)v;
+    long fp=(long)((v-ip)*100+0.5);
+    char b[32]; sprintf(b,"%ld.%02ld",ip,fp); print(b);
+  }
+  void print(double v,int d=2){ print((float)v,d); }
   void println(const char* s){ print(s); _cy+=8*_sz; _cx=0; }
   void println(long v){ char b[16]; sprintf(b,"%ld",v); println(b); }
   void println(int v){ println((long)v); }
-  void println(float v,int d=2){ char b[16]; sprintf(b,"%.2f",(double)v); println(b); }
+  void println(float v,int d=2){
+    if(v<0){ print("-"); v=-v; }
+    long ip=(long)v;
+    long fp=(long)((v-ip)*100+0.5);
+    char b[32]; sprintf(b,"%ld.%02ld",ip,fp); println(b);
+  }
+  void println(double v,int d=2){ println((float)v,d); }
   void println(){ _cy+=8*_sz; _cx=0; }
   void drawPixel(int16_t x,int16_t y,uint16_t c){}
   void drawLine(int16_t x0,int16_t y0,int16_t x1,int16_t y1,uint16_t c){}
@@ -161,17 +193,49 @@ struct LiquidCrystal_I2C {
   void clear(){ _cx=0;_cy=0; sim_cmd("LCD_CLR"); }
   void home(){ _cx=0;_cy=0; }
   void setCursor(uint8_t col,uint8_t row){ _cx=col; _cy=row; }
+  // ── print overloads ──────────────────────────────────
   void print(const char* s){
-    char buf[64]; snprintf(buf,64,"LCD_TXT:%d:%d:%s",(int)_cy,(int)_cx,s);
-    sim_cmd(buf); _cx+=strlen(s);
+    // cap to remaining cols so we don't overflow the 16-char buffer
+    char buf[80];
+    snprintf(buf,sizeof(buf),"LCD_TXT:%d:%d:%s",(int)_cy,(int)_cx,s);
+    sim_cmd(buf);
+    _cx += (uint8_t)strlen(s);
+    if(_cx>_cols) _cx=_cols;
   }
-  void print(long v){ char b[16]; sprintf(b,"%ld",v); print(b); }
-  void print(int v){ print((long)v); }
-  void print(float v,int d=2){ char b[16]; sprintf(b,"%.2f",(double)v); print(b); }
-  void println(const char* s){ print(s); _cy=(_cy+1)%2; _cx=0; }
-  void println(long v){ print(v); _cy=(_cy+1)%2; _cx=0; }
-  void println(){ _cy=(_cy+1)%2; _cx=0; }
+  void print(long v, int base=10){
+    char b[24];
+    if(base==16) snprintf(b,sizeof(b),"%lX",v);
+    else if(base==8) snprintf(b,sizeof(b),"%lo",v);
+    else snprintf(b,sizeof(b),"%ld",v);
+    print(b);
+  }
+  void print(unsigned long v, int base=10){
+    char b[24];
+    if(base==16) snprintf(b,sizeof(b),"%lX",v);
+    else if(base==8) snprintf(b,sizeof(b),"%lo",v);
+    else snprintf(b,sizeof(b),"%lu",v);
+    print(b);
+  }
+  void print(int v, int base=10){ print((long)v, base); }
+  void print(unsigned int v, int base=10){ print((unsigned long)v, base); }
+  void print(float v, int d=2){
+    // d is decimal places (0-6 supported)
+    if(d<0) d=0; if(d>6) d=6;
+    char fmt[8]; snprintf(fmt,sizeof(fmt),"%%.%df",d);
+    char b[24]; snprintf(b,sizeof(b),fmt,(double)v);
+    print(b);
+  }
+  void print(double v, int d=2){ print((float)v, d); }
+  // ── println overloads ─────────────────────────────────
+  void println(const char* s){ print(s); _cy=(_cy+1)%_rows; _cx=0; }
+  void println(long v, int base=10){ print(v,base); _cy=(_cy+1)%_rows; _cx=0; }
+  void println(int v, int base=10){ print(v,base); _cy=(_cy+1)%_rows; _cx=0; }
+  void println(float v, int d=2){ print(v,d); _cy=(_cy+1)%_rows; _cx=0; }
+  void println(double v, int d=2){ print(v,d); _cy=(_cy+1)%_rows; _cx=0; }
+  void println(){ _cy=(_cy+1)%_rows; _cx=0; }
   void createChar(uint8_t c,uint8_t* p){}
+  // write a single char
+  size_t write(uint8_t c){ char s[2]={char(c),0}; print(s); return 1; }
 };
 
 struct Servo {
@@ -190,15 +254,18 @@ struct Servo {
 
 void setup();
 void loop();
+#ifndef ARDUINO
 int main(){
   sei();
   TCCR0A=0; TCCR0B=(1<<CS01)|(1<<CS00); TIMSK0=(1<<TOIE0);
   setup();
   while(1) loop();
 }
+#endif
 
 #endif
 
+#ifndef ARDUINO
 // ── Interrupt stubs ────────────────────────────────────────────
 #define FALLING 2
 #define RISING  3
@@ -258,11 +325,29 @@ void enablePCINT(uint8_t pin, voidFuncPtr fn) {
     PCICR  |= (1 << PCIE1);
   }
 }
+#endif
 
 // ═══════════════════════════════════════════════════════════════
 // SimuLab Extended Library Stubs
 // All popular Arduino libraries stubbed for simulation
 // ═══════════════════════════════════════════════════════════════
+
+// ── Sensor shared memory (placed at fixed SRAM addresses far from stack/heap)
+// JS writes these addresses every frame via cpu.data[]
+// 0x0150 = temp_raw  (temp_celsius + 40, so 0°C=40, 25°C=65, range 0-160)
+// 0x0151 = hum_raw   (humidity %, 0-100)
+// 0x0152 = dist_raw  (ultrasonic cm, 0-255)
+// 0x0153 = rfid_flag (1 = card present)
+// 0x0154 = accel_x   (0=-2g, 128=0g, 255=+2g)
+// 0x0155 = accel_y
+// 0x0156 = accel_z
+#define SIM_TEMP_ADDR  (*(volatile uint8_t*)0x0150)
+#define SIM_HUM_ADDR   (*(volatile uint8_t*)0x0151)
+#define SIM_DIST_ADDR  (*(volatile uint8_t*)0x0152)
+#define SIM_RFID_ADDR  (*(volatile uint8_t*)0x0153)
+#define SIM_ACCEL_X    (*(volatile uint8_t*)0x0154)
+#define SIM_ACCEL_Y    (*(volatile uint8_t*)0x0155)
+#define SIM_ACCEL_Z    (*(volatile uint8_t*)0x0156)
 
 // ── DHT Temperature & Humidity ────────────────────────────────
 #define DHT11  11
@@ -274,17 +359,12 @@ struct DHT {
   DHT(uint8_t pin, uint8_t type) : _pin(pin), _type(type) {}
   void begin() { sim_cmd("DHT_INIT"); }
   float readTemperature(bool fahrenheit=false) {
-    // Returns simulated temp — workspace.html feeds real sensor value
-    char buf[32];
-    snprintf(buf, sizeof(buf), "DHT_READ_T:%d", (int)_pin);
-    sim_cmd(buf);
-    return fahrenheit ? 79.34f : 26.3f;
+    // Read from fixed SRAM address that JS pre-writes every animation frame
+    float val = (float)SIM_TEMP_ADDR - 40.0f;
+    return fahrenheit ? (val * 1.8f + 32.0f) : val;
   }
   float readHumidity() {
-    char buf[32];
-    snprintf(buf, sizeof(buf), "DHT_READ_H:%d", (int)_pin);
-    sim_cmd(buf);
-    return 64.1f;
+    return (float)SIM_HUM_ADDR;
   }
   bool isnan(float v) { return false; }
 };
@@ -310,7 +390,8 @@ struct DallasTemperature {
   void requestTemperatures() { sim_cmd("DS18B20_REQ"); }
   float getTempCByIndex(uint8_t idx) {
     char buf[32]; snprintf(buf, sizeof(buf), "DS18B20_READ:%d", (int)idx);
-    sim_cmd(buf); return 25.6f;
+    sim_cmd(buf);
+    return (float)GPIOR1 - 40.0f;
   }
   float getTempFByIndex(uint8_t idx) { return getTempCByIndex(idx)*1.8f+32.0f; }
   int getDeviceCount() { return 1; }
@@ -328,10 +409,10 @@ struct MFRC522 {
   MFRC522(uint8_t ss, uint8_t rst) : _ss(ss), _rst(rst) {}
   void PCD_Init() { sim_cmd("RFID_INIT"); }
   bool PICC_IsNewCardPresent() {
-    sim_cmd("RFID_CHECK");
-    return false;
+    return (*(volatile uint8_t*)0xF1) != 0;
   }
   bool PICC_ReadCardSerial() {
+    if ((*(volatile uint8_t*)0xF1) == 0) return false;
     uid.size = 4;
     uid.uidByte[0] = 0x4A; uid.uidByte[1] = 0x2B;
     uid.uidByte[2] = 0x9C; uid.uidByte[3] = 0xD1;
@@ -349,23 +430,37 @@ struct MPU6050 {
   bool testConnection() { return true; }
   void getMotion6(int16_t* ax,int16_t* ay,int16_t* az,
                   int16_t* gx,int16_t* gy,int16_t* gz) {
-    sim_cmd("MPU6050_READ");
-    *ax=1200; *ay=-340; *az=16000;
-    *gx=120;  *gy=-80;  *gz=45;
+    *ax = getAccelerationX();
+    *ay = getAccelerationY();
+    *az = getAccelerationZ();
+    *gx = 120;  *gy = -80;  *gz = 45;
   }
-  int16_t getAccelerationX() { return 1200; }
-  int16_t getAccelerationY() { return -340; }
-  int16_t getAccelerationZ() { return 16000; }
+  int16_t getAccelerationX() {
+    float g = ((float)(*(volatile uint8_t*)0xF2) / 255.0f) * 4.0f - 2.0f;
+    return (int16_t)(g * 16384.0f);
+  }
+  int16_t getAccelerationY() {
+    float g = ((float)(*(volatile uint8_t*)0xF3) / 255.0f) * 4.0f - 2.0f;
+    return (int16_t)(g * 16384.0f);
+  }
+  int16_t getAccelerationZ() {
+    float g = ((float)(*(volatile uint8_t*)0xF4) / 255.0f) * 4.0f - 2.0f;
+    return (int16_t)(g * 16384.0f);
+  }
   int16_t getRotationX() { return 120; }
   int16_t getRotationY() { return -80; }
   int16_t getRotationZ() { return 45; }
-  float getTemperature() { return 26.3f; }
+  float getTemperature() {
+    return (float)GPIOR1 - 40.0f;
+  }
 };
 
 // ── Adafruit BMP085/BMP180 Pressure ───────────────────────────
 struct Adafruit_BMP085 {
   bool begin() { sim_cmd("BMP180_INIT"); return true; }
-  float readTemperature() { return 26.3f; }
+  float readTemperature() {
+    return (float)GPIOR1 - 40.0f;
+  }
   int32_t readPressure() { return 101325L; }
   float readAltitude(float seaLevelPa=101325.0f) { return 42.0f; }
   int32_t readSealevelPressure(float alt=0) { return 101325L; }
@@ -375,7 +470,9 @@ typedef Adafruit_BMP085 Adafruit_BMP180;
 // ── BMP280 ────────────────────────────────────────────────────
 struct Adafruit_BMP280 {
   bool begin(uint8_t addr=0x76) { sim_cmd("BMP280_INIT"); return true; }
-  float readTemperature() { return 26.3f; }
+  float readTemperature() {
+    return (float)GPIOR1 - 40.0f;
+  }
   float readPressure() { return 101325.0f; }
   float readAltitude(float seaLevelHPa=1013.25f) { return 42.0f; }
 };
@@ -383,8 +480,12 @@ struct Adafruit_BMP280 {
 // ── BME280 (Temp + Humidity + Pressure) ───────────────────────
 struct Adafruit_BME280 {
   bool begin(uint8_t addr=0x76) { sim_cmd("BME280_INIT"); return true; }
-  float readTemperature() { return 26.3f; }
-  float readHumidity()    { return 64.1f; }
+  float readTemperature() {
+    return (float)GPIOR1 - 40.0f;
+  }
+  float readHumidity()    {
+    return (float)GPIOR2;
+  }
   float readPressure()    { return 101325.0f; }
   float readAltitude(float seaLevelHPa=1013.25f) { return 42.0f; }
 };
@@ -528,8 +629,7 @@ struct NewPing {
   NewPing(uint8_t trig,uint8_t echo,uint16_t maxDist=200)
     :_trig(trig),_echo(echo),_maxDist(maxDist){}
   int ping_cm() {
-    char buf[32]; snprintf(buf,sizeof(buf),"PING_CM:%d:%d",_trig,_echo);
-    sim_cmd(buf); return 23;
+    return (*(volatile uint8_t*)0xF0);
   }
   unsigned long ping() { return (unsigned long)ping_cm()*58UL; }
   int ping_in() { return (int)(ping_cm()/2.54f); }

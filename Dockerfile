@@ -1,32 +1,31 @@
-# SimuLab — Docker image for Railway deployment
-# Includes Node.js + avr-gcc for real Arduino compilation
+FROM node:20-bullseye-slim
 
-FROM node:20-slim
+# Install C++ compilers for AVR (Arduino) and curl
+RUN apt-get update && \
+    apt-get install -y curl gcc-avr binutils-avr avr-libc && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install avr-gcc toolchain
-RUN apt-get update && apt-get install -y \
-    gcc-avr \
-    avr-libc \
-    binutils-avr \
-    --no-install-recommends \
-  && rm -rf /var/lib/apt/lists/*
+# Install arduino-cli as a fallback compiler and install the core AVR libraries
+RUN curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=/usr/local/bin sh && \
+    arduino-cli core update-index && \
+    arduino-cli core install arduino:avr
 
-# Set working directory
 WORKDIR /app
 
-# Install Node dependencies first (cached layer)
-COPY package.json ./
+# Install Node dependencies
+COPY package*.json ./
 RUN npm install --production
 
-# Copy all project files
+# Copy application source code
 COPY . .
 
-# Expose port (Railway sets $PORT automatically)
-EXPOSE 3001
+# Ensure the persistent data directory exists
+RUN mkdir -p /app/data
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s \
-  CMD node -e "require('http').get('http://localhost:'+process.env.PORT+'/health',r=>r.statusCode===200?process.exit(0):process.exit(1))"
+# Environment variables
+ENV PORT=3080
+ENV NODE_ENV=production
 
-# Start server
-CMD ["node", "server.js"]
+EXPOSE 3080
+
+CMD [ "npm", "start" ]

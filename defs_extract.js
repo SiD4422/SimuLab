@@ -1,764 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>SimuLab Workspace</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<style>
-/* ═══════════════════════════════════════════
-   SIMULAB WORKSPACE — VARIABLES
-═══════════════════════════════════════════ */
-:root {
-  --bg:        #0c0c10;
-  --bg2:       #111116;
-  --bg3:       #18181f;
-  --bg4:       #1e1e28;
-  --bg5:       #252532;
-  --line:      rgba(255,255,255,0.07);
-  --line2:     rgba(255,255,255,0.12);
-  --purple:    #8b5cf6;
-  --purple2:   #7c3aed;
-  --purple3:   #a78bfa;
-  --green:     #34d399;
-  --green2:    #059669;
-  --red:       #f87171;
-  --yellow:    #fbbf24;
-  --cyan:      #22d3ee;
-  --orange:    #fb923c;
-  --text:      #f1f0f5;
-  --text2:     #a09db8;
-  --text3:     #5a5775;
-  --mono:      'IBM Plex Mono', monospace;
-  --sans:      'IBM Plex Sans', sans-serif;
-  /* Pin colors */
-  --pin-pwr:   #f87171;
-  --pin-gnd:   #4b5563;
-  --pin-dig:   #60a5fa;
-  --pin-ana:   #fbbf24;
-  --pin-pwm:   #c084fc;
-  --pin-i2c:   #22d3ee;
-  --pin-uart:  #34d399;
-  --pin-spi:   #fb923c;
-}
-*,*::before,*::after { box-sizing:border-box; margin:0; padding:0 }
-html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:var(--sans) }
-::-webkit-scrollbar { width:5px; height:5px }
-::-webkit-scrollbar-track { background:var(--bg) }
-::-webkit-scrollbar-thumb { background:var(--bg5); border-radius:3px }
-
-/* ═══════════════════════════════════════════
-   TOPBAR
-═══════════════════════════════════════════ */
-#topbar {
-  height:48px; background:var(--bg2); border-bottom:1px solid var(--line);
-  display:flex; align-items:center; gap:0; position:relative; z-index:200;
-  user-select:none; flex-shrink:0;
-}
-.tb-logo {
-  display:flex; align-items:center; gap:10px; padding:0 20px;
-  border-right:1px solid var(--line); height:100%; text-decoration:none;
-}
-.tb-logo-mark {
-  width:30px; height:30px; border-radius:8px;
-  background:linear-gradient(135deg,var(--purple2),var(--purple3));
-  display:flex; align-items:center; justify-content:center;
-  font-size:15px; box-shadow:0 0 16px rgba(139,92,246,.4);
-}
-.tb-logo-name {
-  font-family:var(--mono); font-size:15px; font-weight:700;
-  color:var(--text); letter-spacing:-0.5px;
-}
-.tb-logo-name em { color:var(--purple3); font-style:normal }
-.tb-sep { width:1px; height:100%; background:var(--line) }
-.tb-project {
-  display:flex; align-items:center; gap:8px; padding:0 16px; height:100%;
-  border-right:1px solid var(--line);
-}
-.tb-project-name {
-  font-family:var(--mono); font-size:12px; color:var(--text2);
-  cursor:pointer; padding:3px 8px; border-radius:4px; border:1px solid transparent;
-}
-.tb-project-name:hover { border-color:var(--line2); color:var(--text) }
-.tb-controls { display:flex; align-items:center; gap:6px; padding:0 14px; height:100%; border-right:1px solid var(--line) }
-.tb-board-select {
-  background:var(--bg3); border:1px solid var(--line2); border-radius:6px;
-  color:var(--text); font-family:var(--mono); font-size:11px; padding:5px 10px;
-  cursor:pointer; outline:none; transition:.15s;
-}
-.tb-board-select:hover { border-color:var(--purple) }
-.tb-status {
-  display:flex; align-items:center; gap:6px; padding:4px 12px;
-  background:var(--bg3); border:1px solid var(--line); border-radius:20px;
-  font-family:var(--mono); font-size:11px; color:var(--text3);
-}
-.tb-status-dot {
-  width:7px; height:7px; border-radius:50%; background:var(--text3);
-  transition:.3s; flex-shrink:0;
-}
-.tb-status-dot.ready   { background:var(--green); box-shadow:0 0 6px var(--green) }
-.tb-status-dot.compile { background:var(--yellow); animation:blink .5s infinite }
-.tb-status-dot.run     { background:var(--green); animation:blink 1.2s infinite }
-.tb-status-dot.error   { background:var(--red) }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-.tb-right { display:flex; align-items:center; gap:8px; padding:0 14px; margin-left:auto }
-.btn {
-  display:inline-flex; align-items:center; gap:6px; padding:7px 16px;
-  border-radius:7px; font-family:var(--mono); font-size:12px; font-weight:600;
-  cursor:pointer; border:none; transition:.15s; white-space:nowrap; line-height:1;
-}
-.btn-run {
-  background:linear-gradient(135deg,var(--green2),#047857);
-  color:#fff; box-shadow:0 0 20px rgba(52,211,153,.25);
-}
-.btn-run:hover { opacity:.88; transform:translateY(-1px); box-shadow:0 0 28px rgba(52,211,153,.4) }
-.btn-run.running {
-  background:linear-gradient(135deg,#dc2626,#b91c1c);
-  box-shadow:0 0 20px rgba(248,113,113,.3); animation:run-pulse 1.4s infinite;
-}
-@keyframes run-pulse { 0%,100%{box-shadow:0 0 20px rgba(248,113,113,.3)} 50%{box-shadow:0 0 32px rgba(248,113,113,.6)} }
-.btn-ghost {
-  background:rgba(139,92,246,.12); border:1px solid rgba(139,92,246,.3);
-  color:var(--purple3);
-}
-.btn-ghost:hover { background:rgba(139,92,246,.22) }
-.btn-plain {
-  background:var(--bg3); border:1px solid var(--line); color:var(--text2);
-}
-.btn-plain:hover { border-color:var(--line2); color:var(--text) }
-
-/* ═══════════════════════════════════════════
-   MAIN WORKSPACE LAYOUT
-═══════════════════════════════════════════ */
-#workspace {
-  display:grid;
-  grid-template-columns: 200px 1fr 380px;
-  grid-template-rows: 1fr;
-  height:calc(100vh - 48px - 22px);
-  overflow:hidden;
-}
-
-/* ═══════════════════════════════════════════
-   LEFT — COMPONENT PALETTE
-═══════════════════════════════════════════ */
-#palette {
-  background:var(--bg2); border-right:1px solid var(--line);
-  display:flex; flex-direction:column; overflow:hidden;
-}
-.palette-head {
-  padding:10px 12px 8px; border-bottom:1px solid var(--line);
-  font-family:var(--mono); font-size:10px; font-weight:600;
-  color:var(--text3); letter-spacing:1.5px; text-transform:uppercase;
-}
-.palette-search {
-  padding:8px 10px; border-bottom:1px solid var(--line);
-}
-.palette-search input {
-  width:100%; background:var(--bg3); border:1px solid var(--line);
-  border-radius:5px; padding:6px 10px; font-size:11px; font-family:var(--mono);
-  color:var(--text); outline:none; transition:.15s;
-}
-.palette-search input:focus { border-color:rgba(139,92,246,.5); background:var(--bg4) }
-.palette-search input::placeholder { color:var(--text3) }
-.palette-scroll { overflow-y:auto; flex:1; padding:4px 0 }
-.pcat { padding:6px 12px 3px; font-size:9px; font-weight:700; color:var(--text3); letter-spacing:2px; text-transform:uppercase; margin-top:4px }
-.pitem {
-  display:flex; align-items:center; gap:8px; padding:6px 12px; margin:1px 6px;
-  border-radius:5px; cursor:grab; font-size:12px; color:var(--text2);
-  border:1px solid transparent; transition:.12s; user-select:none;
-}
-.pitem:hover { background:rgba(139,92,246,.1); border-color:rgba(139,92,246,.2); color:var(--text) }
-.pitem:active { cursor:grabbing; background:rgba(139,92,246,.18) }
-.pitem-ico { font-size:14px; width:18px; text-align:center; flex-shrink:0 }
-.pitem-name { flex:1; font-size:11.5px }
-.pitem-badge {
-  font-size:8px; padding:1px 5px; border-radius:3px;
-  background:rgba(139,92,246,.2); color:var(--purple3); font-weight:600;
-}
-
-/* ═══════════════════════════════════════════
-   CENTER — CIRCUIT CANVAS
-═══════════════════════════════════════════ */
-#canvas-col {
-  display:flex; flex-direction:column; overflow:hidden; position:relative; background:var(--bg);
-}
-#canvas-toolbar {
-  height:36px; background:var(--bg2); border-bottom:1px solid var(--line);
-  display:flex; align-items:center; gap:8px; padding:0 12px; flex-shrink:0;
-}
-.ctool {
-  display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:5px;
-  font-family:var(--mono); font-size:11px; color:var(--text3); cursor:pointer;
-  border:1px solid transparent; transition:.12s; user-select:none;
-}
-.ctool:hover { background:var(--bg3); color:var(--text); border-color:var(--line) }
-.ctool.active { background:rgba(139,92,246,.15); color:var(--purple3); border-color:rgba(139,92,246,.3) }
-.ctool-sep { width:1px; height:18px; background:var(--line); margin:0 2px }
-#canvas-wrap {
-  flex:1; position:relative; overflow:hidden; cursor:default;
-}
-#grid-canvas   { position:absolute; inset:0; pointer-events:none }
-#wire-canvas   { position:absolute; inset:0; pointer-events:none; z-index:5 }
-#comp-layer    { position:absolute; inset:0; z-index:10 }
-.canvas-hint {
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  text-align:center; color:var(--text3); pointer-events:none; transition:.5s;
-  max-width:280px;
-}
-.canvas-hint h3 { font-size:15px; font-weight:600; color:var(--text2); margin-bottom:8px; font-family:var(--mono) }
-.canvas-hint p  { font-size:12px; line-height:1.7; color:var(--text3) }
-.canvas-hint.gone { opacity:0 }
-.zoom-controls {
-  position:absolute; bottom:14px; right:14px; display:flex; flex-direction:column;
-  gap:4px; z-index:50;
-}
-.zbtn {
-  width:28px; height:28px; background:var(--bg3); border:1px solid var(--line);
-  border-radius:5px; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; font-size:14px; color:var(--text3); user-select:none; transition:.15s;
-}
-.zbtn:hover { border-color:var(--line2); color:var(--text) }
-.zlbl { background:var(--bg3); border:1px solid var(--line); border-radius:5px; padding:2px 0; font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center }
-
-/* ═══════════════════════════════════════════
-   PLACED COMPONENTS
-═══════════════════════════════════════════ */
-.pcomp {
-  position:absolute; user-select:none; cursor:move; z-index:10;
-}
-.pcomp.selected .pcomp-card { outline:1.5px solid var(--purple3); box-shadow:0 0 0 3px rgba(167,139,250,.15) }
-.pcomp-card {
-  background:var(--bg3); border:1px solid var(--line);
-  border-radius:8px; position:relative; transition:border-color .15s;
-}
-.pcomp-card:hover { border-color:var(--line2) }
-.pcomp-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:4px 8px; border-bottom:1px solid var(--line);
-  font-family:var(--mono); font-size:8.5px; color:var(--text3);
-  background:rgba(0,0,0,.25); border-radius:8px 8px 0 0;
-}
-.pcomp-del {
-  cursor:pointer; color:var(--red); opacity:0; transition:.15s;
-  background:none; border:none; font-size:11px; line-height:1; padding:0 2px;
-}
-.pcomp:hover .pcomp-del { opacity:.7 }
-.pcomp-del:hover { opacity:1 !important }
-
-/* PIN DOTS */
-.pdot {
-  position:absolute; width:10px; height:10px; border-radius:50%;
-  cursor:crosshair; border:2px solid var(--bg3); transition:.15s; z-index:20;
-}
-.pdot:hover { transform:scale(1.7); z-index:30 }
-.pdot.pwr  { background:var(--pin-pwr) }
-.pdot.gnd  { background:var(--pin-gnd) }
-.pdot.dig  { background:var(--pin-dig) }
-.pdot.ana  { background:var(--pin-ana) }
-.pdot.pwm  { background:var(--pin-pwm) }
-.pdot.i2c  { background:var(--pin-i2c) }
-.pdot.uart { background:var(--pin-uart) }
-.pdot.spi  { background:var(--pin-spi) }
-.pdot.connected { box-shadow:0 0 6px currentColor }
-.plabel {
-  position:absolute; font-family:var(--mono); font-size:7px; color:var(--text3);
-  pointer-events:none; white-space:nowrap; z-index:5; line-height:1;
-}
-
-/* COMPONENT BODIES */
-.board-body {
-  position:relative; border-radius:6px;
-}
-.board-chip {
-  position:absolute; border-radius:4px; background:#080812;
-  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:2px;
-}
-.board-chip-name { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:.5px }
-.board-chip-spec { font-family:var(--mono); font-size:7px; color:var(--text3) }
-.board-label { position:absolute; font-family:var(--mono); font-size:7px; letter-spacing:2px; opacity:.4; font-weight:600 }
-
-.led-body { position:relative; background:transparent; border:none !important }
-.led-globe {
-  position:absolute; border-radius:50%; border:2px solid;
-  transition:background .15s, box-shadow .15s;
-}
-.led-flat { position:absolute; border-left:2px solid rgba(150,150,150,.3); border-right:2px solid rgba(150,150,150,.3) }
-
-.sensor-body {
-  background:var(--bg4); border-radius:6px;
-  display:flex; flex-direction:column; align-items:center; padding:8px 6px 6px; border:1px solid var(--line);
-}
-.sensor-emo { font-size:20px; line-height:1; margin-bottom:3px }
-.sensor-lbl { font-family:var(--mono); font-size:7.5px; color:var(--text3); text-align:center }
-.sensor-val { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--green); margin-top:3px; min-height:14px }
-
-.oled-body { background:#050510; border:2px solid #1a1a40; border-radius:4px }
-.oled-screen { font-family:var(--mono); font-size:7px; color:#7799ff; line-height:1.6; padding:4px; background:#000018; border-radius:2px; margin:3px; min-height:44px }
-
-.lcd-body { background:#071007; border:1px solid #102010; border-radius:4px }
-.lcd-screen { font-family:var(--mono); font-size:9px; color:#44ff22; letter-spacing:.3px; line-height:1.5; padding:4px 5px; background:#002200; margin:3px; border-radius:2px }
-
-/* Resistor SVG */
-.res-body { background:transparent !important; border:none !important }
-
-/* Button */
-.pushbtn-body { background:transparent; border:none !important }
-.pushbtn-cap {
-  position:absolute; border-radius:5px; background:var(--bg4);
-  border:2px solid var(--bg5); cursor:pointer; transition:.1s;
-  display:flex; align-items:center; justify-content:center;
-}
-.pushbtn-cap:hover { border-color:var(--line2) }
-.pushbtn-cap:active, .pushbtn-cap.pressed { background:var(--purple2); border-color:var(--purple3); transform:scale(.92) }
-
-/* Servo */
-.servo-body { background:var(--bg4); border:1px solid var(--line); border-radius:5px; overflow:visible }
-.servo-horn {
-  position:absolute; left:50%; top:-10px; transform:translateX(-50%);
-  width:22px; height:12px; background:#d1d5db; border-radius:3px 3px 0 0;
-  transform-origin:50% 100%; transition:transform .4s ease;
-}
-
-/* ═══════════════════════════════════════════
-   RIGHT — CODE EDITOR + SERIAL
-═══════════════════════════════════════════ */
-#right-col {
-  display:flex; flex-direction:column; background:var(--bg2);
-  border-left:1px solid var(--line); overflow:hidden;
-}
-.panel-tabs {
-  display:flex; background:var(--bg3); border-bottom:1px solid var(--line); flex-shrink:0;
-}
-.ptab {
-  flex:1; padding:9px 6px; text-align:center; font-size:11px; font-family:var(--mono);
-  color:var(--text3); cursor:pointer; border-bottom:2px solid transparent; transition:.15s; user-select:none;
-}
-.ptab.on { color:var(--purple3); border-color:var(--purple3); background:var(--bg2) }
-.ptab:hover:not(.on) { color:var(--text2) }
-
-/* Code editor */
-#code-pane { flex:1; display:flex; flex-direction:column; overflow:hidden }
-#code-pane.hide { display:none }
-.code-bar {
-  display:flex; align-items:center; gap:8px; padding:6px 10px;
-  border-bottom:1px solid var(--line); background:var(--bg3); flex-shrink:0;
-}
-.code-bar select {
-  background:var(--bg2); border:1px solid var(--line); border-radius:5px;
-  color:var(--text); font-family:var(--mono); font-size:11px; padding:3px 8px; cursor:pointer;
-}
-.code-action-btn {
-  padding:3px 8px; border-radius:4px; font-size:10px; font-family:var(--mono);
-  color:var(--text3); cursor:pointer; border:1px solid var(--line); background:var(--bg2);
-  transition:.12s; user-select:none;
-}
-.code-action-btn:hover { border-color:var(--line2); color:var(--text); background:var(--bg3) }
-/* Monaco overrides */
-.monaco-editor .margin { background:var(--bg) !important }
-.monaco-editor-background { background:var(--bg) !important }
-.monaco-editor .minimap { opacity:0.5 }
-#code-editor {
-  flex:1; overflow:auto; padding:14px; font-family:var(--mono); font-size:12.5px;
-  line-height:1.8; color:var(--text); background:var(--bg); outline:none;
-  white-space:pre; tab-size:2; caret-color:var(--purple3); resize:none; border:none;
-}
-
-/* Error panel */
-#err-panel { display:none; max-height:130px; overflow-y:auto; background:#140808; border-top:1px solid rgba(248,113,113,.25) }
-#err-panel.show { display:block }
-.err-hdr { padding:7px 12px; font-family:var(--mono); font-size:11px; font-weight:600; color:var(--red); border-bottom:1px solid rgba(248,113,113,.15) }
-.err-row { padding:3px 12px 3px 24px; font-family:var(--mono); font-size:11px; color:#fca5a5; line-height:1.6 }
-
-/* Serial monitor */
-#serial-pane { flex:1; display:none; flex-direction:column; overflow:hidden }
-#serial-pane.show { display:flex }
-.serial-bar {
-  display:flex; align-items:center; gap:8px; padding:6px 10px;
-  border-bottom:1px solid var(--line); background:var(--bg3); flex-shrink:0;
-}
-.serial-bar select { background:var(--bg2); border:1px solid var(--line); border-radius:5px; color:var(--text); font-family:var(--mono); font-size:11px; padding:3px 8px }
-.serial-bar button { background:transparent; border:1px solid var(--line); border-radius:5px; color:var(--text3); font-family:var(--mono); font-size:10px; padding:3px 8px; cursor:pointer; transition:.15s }
-.serial-bar button:hover { border-color:var(--line2); color:var(--text) }
-#serial-out {
-  flex:1; overflow-y:auto; padding:10px 14px; font-family:var(--mono);
-  font-size:11.5px; line-height:1.9; background:var(--bg);
-}
-.sline { display:flex; gap:10px }
-.sts { color:var(--text3); font-size:10px; flex-shrink:0; padding-top:1px }
-.sval { color:var(--green) }
-.sline.sys .sval { color:var(--cyan) }
-.sline.err .sval { color:var(--red) }
-.sline.warn .sval { color:var(--yellow) }
-.serial-input-row { display:flex; border-top:1px solid var(--line); flex-shrink:0 }
-#serial-in { flex:1; background:transparent; border:none; color:var(--text); font-family:var(--mono); font-size:12px; padding:8px 12px; outline:none }
-#serial-in::placeholder { color:var(--text3) }
-#serial-send { padding:0 16px; background:rgba(52,211,153,.1); border:none; border-left:1px solid var(--line); color:var(--green); font-family:var(--mono); font-size:11px; cursor:pointer; transition:.15s }
-#serial-send:hover { background:rgba(52,211,153,.2) }
-
-/* Plotter pane */
-#plot-pane { flex:1; display:none; flex-direction:column; overflow:hidden; padding:12px }
-#plot-pane.show { display:flex }
-#plot-canvas { width:100%; flex:1; border:1px solid var(--line); border-radius:6px; background:var(--bg) }
-
-/* ═══════════════════════════════════════════
-   STATUS BAR
-═══════════════════════════════════════════ */
-#statusbar {
-  height:22px; background:var(--bg2); border-top:1px solid var(--line);
-  display:flex; align-items:center; padding:0 12px; gap:14px;
-  font-family:var(--mono); font-size:10px; color:var(--text3); flex-shrink:0;
-}
-.sb-seg { display:flex; align-items:center; gap:5px }
-.sb-dot { width:6px; height:6px; border-radius:50%; display:inline-block }
-.sb-div { width:1px; height:12px; background:var(--line) }
-
-/* ═══════════════════════════════════════════
-   DRAG GHOST + PIN TOOLTIP
-═══════════════════════════════════════════ */
-#drag-ghost {
-  position:fixed; pointer-events:none; z-index:9999;
-  background:rgba(139,92,246,.15); border:1px solid rgba(139,92,246,.4);
-  border-radius:6px; padding:5px 12px; font-family:var(--mono); font-size:11px;
-  color:var(--purple3); display:none; white-space:nowrap; transform:translate(-50%,-50%);
-}
-#pin-tip {
-  position:fixed; z-index:9999; background:var(--bg4); border:1px solid rgba(139,92,246,.4);
-  border-radius:5px; padding:3px 8px; font-family:var(--mono); font-size:10px;
-  color:var(--purple3); pointer-events:none; display:none; white-space:nowrap;
-}
-
-/* Wiring cursor */
-body.wiring { cursor:crosshair !important }
-body.wiring * { cursor:crosshair !important }
-
-/* ── Cloud Projects Panel ── */
-#cloud-panel { display:none }
-#cloud-panel.open { display:flex !important; flex-direction:column }
-.cloud-proj-item {
-  padding:10px 14px; border-bottom:1px solid var(--line);
-  transition:.12s;
-}
-.cloud-proj-item:hover { background:rgba(124,58,237,.08) }
-.cloud-proj-name { font-family:var(--mono); font-size:12px; color:var(--text); font-weight:500; margin-bottom:3px }
-.cloud-proj-date { font-family:var(--mono); font-size:10px; color:var(--text3); margin-bottom:6px }
-.cloud-proj-actions { display:flex; gap:6px }
-.cloud-proj-actions button {
-  background:var(--bg3); border:1px solid var(--line); border-radius:5px;
-  color:var(--text2); font-family:var(--mono); font-size:10px;
-  padding:3px 8px; cursor:pointer; transition:.12s;
-}
-.cloud-proj-actions button:hover { border-color:var(--line2); color:var(--text) }
-</style>
-</head>
-<body>
-
-<div id="drag-ghost"></div>
-<div id="pin-tip"></div>
-
-<!-- ═══════════ TOPBAR ═══════════ -->
-<div id="topbar">
-  <a href="index.html" class="tb-logo">
-    <div class="tb-logo-mark">⚡</div>
-    <span class="tb-logo-name">Simu<em>Lab</em></span>
-  </a>
-  <div class="tb-sep"></div>
-  <div class="tb-project">
-    <span class="tb-project-name" id="proj-name" ondblclick="renameProject()">Untitled Project</span>
-  </div>
-  <div class="tb-sep"></div>
-  <div class="tb-controls">
-    <select class="tb-board-select" id="board-sel" onchange="switchBoard(this.value)">
-      <option value="uno">Arduino Uno (ATmega328P)</option>
-      <option value="nano">Arduino Nano (ATmega328P)</option>
-      <option value="mega">Arduino Mega 2560</option>
-      <option value="esp32">ESP32 DevKit v1</option>
-      <option value="esp8266">ESP8266 NodeMCU</option>
-      <option value="pico">Raspberry Pi Pico</option>
-      <option value="stm32">STM32 BluePill</option>
-    </select>
-    <div class="tb-status">
-      <div class="tb-status-dot ready" id="status-dot"></div>
-      <span id="status-txt">Ready</span>
-    </div>
-  </div>
-  <div class="tb-right">
-    <button class="btn btn-plain" onclick="newProject()">+ New</button>
-    <button class="btn btn-plain" onclick="saveProject()" title="Save locally (Ctrl+S)">💾 Save</button>
-    <button class="btn btn-plain" onclick="cloudSaveProject()" title="Save to cloud">☁️ Cloud</button>
-    <button class="btn btn-ghost" onclick="toggleCloudPanel()" title="My cloud projects">📁 Projects</button>
-    <div id="auth-user" style="display:flex;align-items:center;gap:6px">
-      <img id="auth-avatar" src="" style="display:none;width:24px;height:24px;border-radius:50%;border:1px solid var(--line2)"/>
-      <span id="auth-name" style="font-family:var(--mono);font-size:10px;color:var(--text2);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
-    </div>
-    <button class="btn btn-ghost" id="auth-btn" onclick="signInGoogle()">🔑 Sign In</button>
-    <button class="btn btn-run" id="run-btn" onclick="toggleRun()">▶ Compile & Run</button>
-  </div>
-</div>
-
-<!-- ═══ CLOUD PROJECTS PANEL ═══ -->
-<div id="cloud-panel" style="display:none;position:fixed;top:48px;right:0;width:300px;height:calc(100vh - 48px);background:var(--bg2);border-left:1px solid var(--line2);z-index:500;flex-direction:column;overflow:hidden">
-  <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between">
-    <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text)">☁️ Cloud Projects</span>
-    <button onclick="toggleCloudPanel()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px">✕</button>
-  </div>
-  <!-- Not signed in state -->
-  <div id="cloud-signin-prompt" style="padding:24px;text-align:center;display:block">
-    <div style="font-size:32px;margin-bottom:12px">☁️</div>
-    <div style="font-family:var(--mono);font-size:12px;color:var(--text2);margin-bottom:16px">Sign in to save projects to the cloud and access them anywhere</div>
-    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="signInGoogle()">
-      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Sign in with Google
-    </button>
-  </div>
-  <!-- Signed in state -->
-  <div id="cloud-projects-panel" style="display:none;flex:1;overflow:hidden;flex-direction:column">
-    <div style="padding:10px 14px;border-bottom:1px solid var(--line);display:flex;gap:8px">
-      <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:11px" onclick="cloudSaveProject()">+ Save Current</button>
-      <button class="btn btn-plain" style="font-size:11px" onclick="loadUserProjects()">↻</button>
-    </div>
-    <div id="cloud-project-list" style="overflow-y:auto;flex:1;padding:6px 0"></div>
-  </div>
-</div>
-
-<!-- ═══════════ WORKSPACE ═══════════ -->
-<div id="workspace">
-
-  <!-- LEFT: Component Palette -->
-  <div id="palette">
-    <div class="palette-head">Components</div>
-    <div class="palette-search">
-      <input type="text" placeholder="🔍  Search components..." oninput="filterPalette(this.value)" id="pal-search"/>
-    </div>
-    <div class="palette-scroll" id="pal-scroll">
-
-      <div class="pcat">Microcontrollers</div>
-      <div class="pitem" draggable="true" data-type="uno"     ondragstart="ds(event,'uno')">    <span class="pitem-ico">🔵</span><span class="pitem-name">Arduino Uno</span></div>
-      <div class="pitem" draggable="true" data-type="nano"    ondragstart="ds(event,'nano')">   <span class="pitem-ico">🔵</span><span class="pitem-name">Arduino Nano</span></div>
-      <div class="pitem" draggable="true" data-type="mega"    ondragstart="ds(event,'mega')">   <span class="pitem-ico">🔵</span><span class="pitem-name">Arduino Mega</span></div>
-      <div class="pitem" draggable="true" data-type="esp32"   ondragstart="ds(event,'esp32')">  <span class="pitem-ico">🟣</span><span class="pitem-name">ESP32</span>        <span class="pitem-badge">WiFi</span></div>
-      <div class="pitem" draggable="true" data-type="esp8266" ondragstart="ds(event,'esp8266')"><span class="pitem-ico">🟤</span><span class="pitem-name">ESP8266</span>     <span class="pitem-badge">WiFi</span></div>
-      <div class="pitem" draggable="true" data-type="pico"    ondragstart="ds(event,'pico')">   <span class="pitem-ico">🟢</span><span class="pitem-name">RPi Pico</span></div>
-      <div class="pitem" draggable="true" data-type="stm32"   ondragstart="ds(event,'stm32')">  <span class="pitem-ico">⚫</span><span class="pitem-name">STM32</span></div>
-
-      <div class="pcat">Output</div>
-      <div class="pitem" draggable="true" data-type="led-r"   ondragstart="ds(event,'led-r')">  <span class="pitem-ico">🔴</span><span class="pitem-name">LED Red</span></div>
-      <div class="pitem" draggable="true" data-type="led-g"   ondragstart="ds(event,'led-g')">  <span class="pitem-ico">🟢</span><span class="pitem-name">LED Green</span></div>
-      <div class="pitem" draggable="true" data-type="led-b"   ondragstart="ds(event,'led-b')">  <span class="pitem-ico">🔵</span><span class="pitem-name">LED Blue</span></div>
-      <div class="pitem" draggable="true" data-type="led-y"   ondragstart="ds(event,'led-y')">  <span class="pitem-ico">🟡</span><span class="pitem-name">LED Yellow</span></div>
-      <div class="pitem" draggable="true" data-type="buzzer"  ondragstart="ds(event,'buzzer')"> <span class="pitem-ico">🔔</span><span class="pitem-name">Buzzer</span></div>
-      <div class="pitem" draggable="true" data-type="oled"    ondragstart="ds(event,'oled')">   <span class="pitem-ico">📺</span><span class="pitem-name">OLED 0.96"</span></div>
-      <div class="pitem" draggable="true" data-type="lcd"     ondragstart="ds(event,'lcd')">    <span class="pitem-ico">📟</span><span class="pitem-name">LCD 16×2</span></div>
-      <div class="pitem" draggable="true" data-type="servo"   ondragstart="ds(event,'servo')">  <span class="pitem-ico">⚙️</span><span class="pitem-name">Servo SG90</span></div>
-      <div class="pitem" draggable="true" data-type="rgb"     ondragstart="ds(event,'rgb')">    <span class="pitem-ico">🌈</span><span class="pitem-name">RGB LED</span></div>
-
-      <div class="pcat">Input</div>
-      <div class="pitem" draggable="true" data-type="btn"     ondragstart="ds(event,'btn')">    <span class="pitem-ico">🔲</span><span class="pitem-name">Push Button</span></div>
-      <div class="pitem" draggable="true" data-type="pot"     ondragstart="ds(event,'pot')">    <span class="pitem-ico">🎛️</span><span class="pitem-name">Potentiometer</span></div>
-      <div class="pitem" draggable="true" data-type="sw"      ondragstart="ds(event,'sw')">     <span class="pitem-ico">🔃</span><span class="pitem-name">Slide Switch</span></div>
-
-      <div class="pcat">Sensors</div>
-      <div class="pitem" draggable="true" data-type="dht22"   ondragstart="ds(event,'dht22')">  <span class="pitem-ico">🌡️</span><span class="pitem-name">DHT22</span></div>
-      <div class="pitem" draggable="true" data-type="dht11"   ondragstart="ds(event,'dht11')">  <span class="pitem-ico">🌡️</span><span class="pitem-name">DHT11</span></div>
-      <div class="pitem" draggable="true" data-type="hcsr04"  ondragstart="ds(event,'hcsr04')"> <span class="pitem-ico">📏</span><span class="pitem-name">HC-SR04</span></div>
-      <div class="pitem" draggable="true" data-type="pir"     ondragstart="ds(event,'pir')">    <span class="pitem-ico">👁️</span><span class="pitem-name">PIR Motion</span></div>
-      <div class="pitem" draggable="true" data-type="ldr"     ondragstart="ds(event,'ldr')">    <span class="pitem-ico">☀️</span><span class="pitem-name">LDR Light</span></div>
-      <div class="pitem" draggable="true" data-type="mq2"     ondragstart="ds(event,'mq2')">    <span class="pitem-ico">💨</span><span class="pitem-name">MQ-2 Gas</span></div>
-      <div class="pitem" draggable="true" data-type="soil"    ondragstart="ds(event,'soil')">   <span class="pitem-ico">🌱</span><span class="pitem-name">Soil Moisture</span></div>
-      <div class="pitem" draggable="true" data-type="mpu6050" ondragstart="ds(event,'mpu6050')"><span class="pitem-ico">🧭</span><span class="pitem-name">MPU6050 IMU</span></div>
-      <div class="pitem" draggable="true" data-type="bmp180"  ondragstart="ds(event,'bmp180')"> <span class="pitem-ico">🌬️</span><span class="pitem-name">BMP180</span></div>
-      <div class="pitem" draggable="true" data-type="rfid"    ondragstart="ds(event,'rfid')">   <span class="pitem-ico">📡</span><span class="pitem-name">RFID RC522</span></div>
-      <div class="pitem" draggable="true" data-type="ds18b20" ondragstart="ds(event,'ds18b20')"><span class="pitem-ico">🌡️</span><span class="pitem-name">DS18B20</span></div>
-      <div class="pitem" draggable="true" data-type="bme280"  ondragstart="ds(event,'bme280')"> <span class="pitem-ico">☁️</span><span class="pitem-name">BME280</span></div>
-
-      <div class="pcat">Passive</div>
-      <div class="pitem" draggable="true" data-type="res"     ondragstart="ds(event,'res')">    <span class="pitem-ico">〰️</span><span class="pitem-name">Resistor</span></div>
-      <div class="pitem" draggable="true" data-type="cap"     ondragstart="ds(event,'cap')">    <span class="pitem-ico">⚡</span><span class="pitem-name">Capacitor</span></div>
-      <div class="pitem" draggable="true" data-type="diode"   ondragstart="ds(event,'diode')">  <span class="pitem-ico">▷</span><span class="pitem-name">Diode</span></div>
-    </div>
-  </div>
-
-  <!-- CENTER: Circuit Canvas -->
-  <div id="canvas-col">
-    <div id="canvas-toolbar">
-      <div class="ctool active" id="tool-select" onclick="setTool('select')" title="Select (V)">↖ Select</div>
-      <div class="ctool" id="tool-wire" onclick="setTool('wire')" title="Wire (W)">⌇ Wire</div>
-      <div class="ctool-sep"></div>
-      <div class="ctool" onclick="deleteSelected()" title="Delete (Del)">🗑 Delete</div>
-      <div class="ctool" onclick="clearAll()" title="Clear all">✕ Clear</div>
-      <div class="ctool-sep"></div>
-      <div class="ctool" onclick="loadCode('oled')"     title="Load OLED example">📺 OLED</div>
-      <div class="ctool" onclick="loadCode('servo')"    title="Load Servo example">⚙️ Servo</div>
-      <div class="ctool" onclick="loadCode('lcd')"      title="Load LCD example">📟 LCD</div>
-      <div class="ctool" onclick="loadCode('dht22')"    title="Load DHT22 example">🌡️ DHT</div>
-      <div class="ctool" onclick="loadCode('fastled')"  title="Load FastLED example">🌈 LED</div>
-      <div class="ctool" onclick="loadCode('mpu6050')"  title="Load MPU6050 example">🧭 IMU</div>
-      <div class="ctool" onclick="loadCode('rfid')"     title="Load RFID example">📡 RFID</div>
-      <div class="ctool-sep"></div>
-      <div class="ctool" onclick="validateWires()" title="Check all wiring">✓ Check</div>
-      <div class="ctool" onclick="autoArrange()"   title="Auto-arrange components">⊞ Arrange</div>
-      <span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text3)" id="canvas-info">0 components</span>
-    </div>
-    <div id="canvas-wrap"
-      ondragover="ev.preventDefault()"
-      ondrop="drop(event)"
-      onmousedown="cmDown(event)"
-      onmousemove="cmMove(event)"
-      onmouseup="cmUp(event)"
-      onwheel="cmWheel(event)"
-      oncontextmenu="return false">
-      <canvas id="grid-canvas"></canvas>
-      <canvas id="wire-canvas"></canvas>
-      <div id="comp-layer"></div>
-      <div class="canvas-hint" id="chint">
-        <h3>Drop components here</h3>
-        <p>Drag from the left panel<br>
-        Click pin → click pin to wire<br>
-        <kbd style="background:var(--bg4);padding:1px 5px;border-radius:3px;border:1px solid var(--line);font-size:10px">Ctrl+Enter</kbd> to run</p>
-      </div>
-      <div class="zoom-controls">
-        <div class="zbtn" onclick="zi()">+</div>
-        <div class="zlbl" id="zlbl">100%</div>
-        <div class="zbtn" onclick="zo()">−</div>
-        <div class="zbtn" onclick="zr()" title="Reset view">⊡</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT: Code + Serial -->
-  <div id="right-col">
-    <div class="panel-tabs">
-      <div class="ptab on"  id="tab-code"   onclick="showPane('code')">Code</div>
-      <div class="ptab"     id="tab-serial" onclick="showPane('serial')">Serial</div>
-      <div class="ptab"     id="tab-plot"   onclick="showPane('plot')">Plotter</div>
-    </div>
-
-    <!-- Code -->
-    <div id="code-pane">
-      <div class="code-bar">
-        <select id="lang-sel" onchange="switchLang(this.value)">
-          <option value="cpp">Arduino C++</option>
-          <option value="py">MicroPython</option>
-        </select>
-        <div style="display:flex;align-items:center;gap:6px;margin-left:4px">
-          <div class="code-action-btn" onclick="formatCode()" title="Format code">⊞ Format</div>
-          <div class="code-action-btn" onclick="increaseFontSize()" title="Increase font">A+</div>
-          <div class="code-action-btn" onclick="decreaseFontSize()" title="Decrease font">A−</div>
-        </div>
-        <span class="code-info" id="code-info">Not compiled</span>
-        <span style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:8px" id="cursor-pos">Ln 1, Col 1</span>
-      </div>
-      <!-- Monaco editor container -->
-      <div id="monaco-container" style="flex:1;overflow:hidden;position:relative"></div>
-      <!-- Hidden textarea for compatibility -->
-      <textarea id="code-editor" style="display:none" spellcheck="false"></textarea>
-      <div id="err-panel">
-        <div class="err-hdr">✕ Compile Errors</div>
-        <div id="err-body"></div>
-      </div>
-    </div>
-
-    <!-- Serial -->
-    <div id="serial-pane">
-      <div class="serial-bar">
-        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">Baud:</span>
-        <select id="baud-sel"><option>9600</option><option>19200</option><option>57600</option><option selected>115200</option></select>
-        <button onclick="clearSerial()">Clear</button>
-        <button onclick="exportSerial()">Export</button>
-      </div>
-      <div id="serial-out"></div>
-      <div class="serial-input-row">
-        <input id="serial-in" placeholder="Send to device..." onkeydown="if(event.key==='Enter')sendSerial()"/>
-        <button id="serial-send" onclick="sendSerial()">Send</button>
-      </div>
-    </div>
-
-    <!-- Plotter -->
-    <div id="plot-pane">
-      <canvas id="plot-canvas"></canvas>
-    </div>
-  </div>
-
-</div>
-
-<!-- STATUS BAR -->
-<div id="statusbar">
-  <div class="sb-seg">
-    <span class="sb-dot" id="sb-d13" style="background:var(--text3)"></span>
-    <span id="sb-msg">Ready</span>
-  </div>
-  <div class="sb-div"></div>
-  <div class="sb-seg">Components: <b id="sb-comps">0</b></div>
-  <div class="sb-div"></div>
-  <div class="sb-seg">Wires: <b id="sb-wires">0</b></div>
-  <div class="sb-div"></div>
-  <div class="sb-seg" id="sb-cycles">Cycles: —</div>
-  <div class="sb-div"></div>
-  <span style="margin-left:auto;color:var(--text3)">⚡ SimuLab v1.0 · <span style="color:var(--purple3)">avr8js</span></span>
-</div>
-
-<!-- avr8js -->
-<!-- Firebase module -->
-<script type="module" src="js/firebase.js"></script>
-<!-- Monaco Editor (VS Code engine) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
-<script src="js/avr8js.bundle.js"></script>
-
-<script>
-'use strict';
-// ═══════════════════════════════════════════════════════════════
-//  SIMULAB WORKSPACE ENGINE
-// ═══════════════════════════════════════════════════════════════
-
-const COMPILE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3001/compile' : '/compile';
-
-// ── State ──────────────────────────────────────────────────────
-let comps=[], wires=[], selId=null;
-let zoom=1, px=0, py=0;
-let panning=false, psx=0, psy=0;
-let dragging=false, dragC=null, dox=0, doy=0;
-let wiring=false, wireFrom=null;
-let mx=0, my=0;
-let tool='select';
-let running=false, cpu=null, cpuTmr=null, totalCycles=0;
-let avrPorts={}, avrUsart=null, avrADC=null;
-let serialBuf='';
-let plotData=[];
-let _dragType=null;
-let projectName='Untitled Project';
-
-// ── Component Definitions ──────────────────────────────────────
-const PIN_MAP = { // Arduino pin# → {port,bit}
-  0:{p:'D',b:0},1:{p:'D',b:1},2:{p:'D',b:2},3:{p:'D',b:3},
-  4:{p:'D',b:4},5:{p:'D',b:5},6:{p:'D',b:6},7:{p:'D',b:7},
-  8:{p:'B',b:0},9:{p:'B',b:1},10:{p:'B',b:2},11:{p:'B',b:3},
-  12:{p:'B',b:4},13:{p:'B',b:5},
-  14:{p:'C',b:0},15:{p:'C',b:1},16:{p:'C',b:2},17:{p:'C',b:3},18:{p:'C',b:4},19:{p:'C',b:5},
-};
-const PIN_LABEL_NUM = {
-  D0:0,D1:1,D2:2,D3:3,D4:4,D5:5,D6:6,D7:7,
-  D8:8,D9:9,'D10':10,'D11':11,'D12':12,'D13':13,
-  A0:14,A1:15,A2:16,A3:17,A4:18,A5:19,
-};
-
-const BOARDS = ['uno','nano','mega','esp32','esp8266','pico','stm32'];
-
 const DEFS = {
   // ── Boards ──
-  uno:{label:'Arduino Uno R3',w:204,h:300,board:true,
+  uno:{label:'Arduino Uno R3',w:360,h:225,board:true,hidelabels:true,
     pins:[
-      {id:'D0',t:'uart',x:16,y:55,l:'D0'},{id:'D1',t:'uart',x:36,y:55,l:'D1'},
-      {id:'D2',t:'dig',x:56,y:55,l:'D2'},{id:'D3',t:'pwm',x:76,y:55,l:'D3~'},
-      {id:'D4',t:'dig',x:96,y:55,l:'D4'},{id:'D5',t:'pwm',x:116,y:55,l:'D5~'},
-      {id:'D6',t:'pwm',x:136,y:55,l:'D6~'},{id:'D7',t:'dig',x:156,y:55,l:'D7'},
-      {id:'D8',t:'dig',x:16,y:73,l:'D8'},{id:'D9',t:'pwm',x:36,y:73,l:'D9~'},
-      {id:'D10',t:'pwm',x:56,y:73,l:'D10~'},{id:'D11',t:'pwm',x:76,y:73,l:'D11~'},
-      {id:'D12',t:'dig',x:96,y:73,l:'D12'},{id:'D13',t:'dig',x:116,y:73,l:'D13'},
-      {id:'A0',t:'ana',x:16,y:236,l:'A0'},{id:'A1',t:'ana',x:36,y:236,l:'A1'},
-      {id:'A2',t:'ana',x:56,y:236,l:'A2'},{id:'A3',t:'ana',x:76,y:236,l:'A3'},
-      {id:'A4',t:'i2c',x:96,y:236,l:'SDA'},{id:'A5',t:'i2c',x:116,y:236,l:'SCL'},
-      {id:'5V',t:'pwr',x:16,y:258,l:'5V'},{id:'3V3',t:'pwr',x:36,y:258,l:'3V3'},
-      {id:'GND',t:'gnd',x:56,y:258,l:'GND'},{id:'GND2',t:'gnd',x:76,y:258,l:'GND'},
+      {id:'SCL',t:'i2c',x:198,y:42,l:''},{id:'SDA',t:'i2c',x:205,y:42,l:''},{id:'AREF',t:'ana',x:213,y:42,l:''},{id:'GND3',t:'gnd',x:220,y:42,l:''},{id:'D13',t:'dig',x:227,y:42,l:''},{id:'D12',t:'dig',x:235,y:42,l:''},{id:'D11',t:'pwm',x:242,y:42,l:''},{id:'D10',t:'pwm',x:250,y:42,l:''},{id:'D9',t:'pwm',x:257,y:42,l:''},{id:'D8',t:'dig',x:264,y:42,l:''},{id:'D7',t:'dig',x:276,y:42,l:''},{id:'D6',t:'pwm',x:284,y:42,l:''},{id:'D5',t:'pwm',x:291,y:42,l:''},{id:'D4',t:'dig',x:298,y:42,l:''},{id:'D3',t:'pwm',x:305,y:42,l:''},{id:'D2',t:'dig',x:313,y:42,l:''},{id:'D1',t:'uart',x:320,y:42,l:''},{id:'D0',t:'uart',x:328,y:42,l:''},
+      {id:'NC',t:'ana',x:224,y:182,l:''},{id:'IOREF',t:'ana',x:232,y:182,l:''},{id:'RESET',t:'dig',x:239,y:182,l:''},{id:'3V3',t:'pwr',x:247,y:182,l:''},{id:'5V',t:'pwr',x:254,y:182,l:''},{id:'GND',t:'gnd',x:261,y:182,l:''},{id:'GND2',t:'gnd',x:269,y:182,l:''},{id:'VIN',t:'pwr',x:276,y:182,l:''},{id:'A0',t:'ana',x:291,y:182,l:''},{id:'A1',t:'ana',x:298,y:182,l:''},{id:'A2',t:'ana',x:305,y:182,l:''},{id:'A3',t:'ana',x:313,y:182,l:''},{id:'A4',t:'i2c',x:320,y:182,l:''},{id:'A5',t:'i2c',x:328,y:182,l:''}
     ],
     build(el){
       el.style.cssText+=`;background:transparent;border:none;overflow:visible`;
@@ -1260,18 +505,18 @@ const DEFS = {
   },
 
   // ── LEDs ──
-  'led-r':{label:'LED',w:48,h:68,color:'#f87171',pins:[{id:'A',t:'dig',x:12,y:62,l:'+'},{id:'K',t:'gnd',x:28,y:62,l:'−'}],build:buildLED},
-  'led-g':{label:'LED',w:48,h:68,color:'#34d399',pins:[{id:'A',t:'dig',x:12,y:62,l:'+'},{id:'K',t:'gnd',x:28,y:62,l:'−'}],build:buildLED},
-  'led-b':{label:'LED',w:48,h:68,color:'#60a5fa',pins:[{id:'A',t:'dig',x:12,y:62,l:'+'},{id:'K',t:'gnd',x:28,y:62,l:'−'}],build:buildLED},
-  'led-y':{label:'LED',w:48,h:68,color:'#fbbf24',pins:[{id:'A',t:'dig',x:12,y:62,l:'+'},{id:'K',t:'gnd',x:28,y:62,l:'−'}],build:buildLED},
-  rgb:{label:'RGB LED',w:54,h:72,color:'#fff',pins:[{id:'R',t:'pwm',x:8,y:66,l:'R'},{id:'G',t:'pwm',x:22,y:66,l:'G'},{id:'B',t:'pwm',x:36,y:66,l:'B'},{id:'GND',t:'gnd',x:44,y:66,l:'−'}],build:buildLED},
+  'led-r':{label:'LED',w:24,h:68,color:'#f87171',hidelabels:true,pins:[{id:'A',t:'dig',x:8,y:62,l:''},{id:'K',t:'gnd',x:16,y:62,l:''}],build:buildLED},
+  'led-g':{label:'LED',w:24,h:68,color:'#34d399',hidelabels:true,pins:[{id:'A',t:'dig',x:8,y:62,l:''},{id:'K',t:'gnd',x:16,y:62,l:''}],build:buildLED},
+  'led-b':{label:'LED',w:24,h:68,color:'#60a5fa',hidelabels:true,pins:[{id:'A',t:'dig',x:8,y:62,l:''},{id:'K',t:'gnd',x:16,y:62,l:''}],build:buildLED},
+  'led-y':{label:'LED',w:24,h:68,color:'#fbbf24',hidelabels:true,pins:[{id:'A',t:'dig',x:8,y:62,l:''},{id:'K',t:'gnd',x:16,y:62,l:''}],build:buildLED},
+  rgb:{label:'RGB LED',w:54,h:72,color:'#fff',hidelabels:true,pins:[{id:'R',t:'pwm',x:8,y:66,l:''},{id:'G',t:'pwm',x:22,y:66,l:''},{id:'B',t:'pwm',x:36,y:66,l:''},{id:'GND',t:'gnd',x:44,y:66,l:''}],build:buildLED},
 
   // ── Output ──
-  buzzer:{label:'Buzzer',w:52,h:62,
-    pins:[{id:'VCC',t:'pwr',x:8,y:56,l:'+'},{id:'GND',t:'gnd',x:36,y:56,l:'−'}],
+  buzzer:{label:'Buzzer',w:52,h:52,hidelabels:true,
+    pins:[{id:'VCC',t:'pwr',x:20,y:45,l:''},{id:'GND',t:'gnd',x:32,y:45,l:''}],
     build(el){ buildBuzzer(el); }
   },
-  oled:{label:'OLED 0.96"',w:92,h:88,
+  oled:{label:'OLED 0.96"',w:92,h:88,hidelabels:true,
     pins:[{id:'VCC',t:'pwr',x:6,y:83,l:'VCC'},{id:'GND',t:'gnd',x:22,y:83,l:'GND'},{id:'SCL',t:'i2c',x:44,y:83,l:'SCL'},{id:'SDA',t:'i2c',x:62,y:83,l:'SDA'}],
     build(el){ buildOLED(el); }
   },
@@ -1279,18 +524,18 @@ const DEFS = {
     pins:[{id:'VSS',t:'gnd',x:6,y:72,l:'VSS'},{id:'VDD',t:'pwr',x:20,y:72,l:'VDD'},{id:'RS',t:'dig',x:36,y:72,l:'RS'},{id:'EN',t:'dig',x:52,y:72,l:'EN'},{id:'D4',t:'dig',x:76,y:72,l:'D4'},{id:'D5',t:'dig',x:90,y:72,l:'D5'},{id:'D6',t:'dig',x:104,y:72,l:'D6'},{id:'D7',t:'dig',x:118,y:72,l:'D7'}],
     build(el){ buildLCD(el); }
   },
-  servo:{label:'SG90 Servo',w:68,h:76,
-    pins:[{id:'GND',t:'gnd',x:6,y:72,l:'GND'},{id:'VCC',t:'pwr',x:24,y:72,l:'VCC'},{id:'SIG',t:'pwm',x:50,y:72,l:'SIG'}],
+  servo:{label:'SG90 Servo',w:68,h:76,hidelabels:true,
+    pins:[{id:'GND',t:'gnd',x:20,y:68,l:''},{id:'VCC',t:'pwr',x:34,y:68,l:''},{id:'SIG',t:'pwm',x:48,y:68,l:''}],
     build(el){ buildServo(el); }
   },
 
   // ── Input ──
-  btn:{label:'Button',w:54,h:58,
-    pins:[{id:'P1',t:'dig',x:6,y:28,l:'1'},{id:'P2',t:'dig',x:44,y:28,l:'2'},{id:'P3',t:'dig',x:6,y:48,l:'3'},{id:'P4',t:'dig',x:44,y:48,l:'4'}],
+  btn:{label:'Button',w:40,h:40,hidelabels:true,
+    pins:[{id:'P1',t:'dig',x:4,y:4,l:''},{id:'P2',t:'dig',x:36,y:4,l:''},{id:'P3',t:'dig',x:4,y:36,l:''},{id:'P4',t:'dig',x:36,y:36,l:''}],
     build(el){ buildButton(el); }
   },
-  pot:{label:'Potentiometer',w:68,h:76,
-    pins:[{id:'VCC',t:'pwr',x:6,y:70,l:'VCC'},{id:'OUT',t:'ana',x:29,y:70,l:'OUT'},{id:'GND',t:'gnd',x:54,y:70,l:'GND'}],
+  pot:{label:'Potentiometer',w:40,h:60,hidelabels:true,
+    pins:[{id:'VCC',t:'pwr',x:10,y:52,l:''},{id:'OUT',t:'ana',x:20,y:52,l:''},{id:'GND',t:'gnd',x:30,y:52,l:''}],
     build(el){ buildPotentiometer(el); }
   },
   sw:{label:'Switch',w:52,h:44,
@@ -1310,6 +555,7 @@ const DEFS = {
         on=!on;
         if(thumb){ thumb.setAttribute('cx', on?'38':'14'); thumb.setAttribute('fill', on?'#22c55e':'#374151'); }
         if(label) label.textContent = on?'ON':'OFF';
+        triggerBtn(el.dataset.cid, on);
       });
     }
   },
@@ -1317,9 +563,10 @@ const DEFS = {
   // ── Sensors ──
   dht22: {label:'DHT22',   w:70,h:82,pins:[{id:'VCC',t:'pwr',x:6,y:76,l:'VCC'},{id:'DAT',t:'dig',x:26,y:76,l:'DAT'},{id:'GND',t:'gnd',x:54,y:76,l:'GND'}],build:buildSensor},
   dht11: {label:'DHT11',   w:70,h:82,pins:[{id:'VCC',t:'pwr',x:6,y:76,l:'VCC'},{id:'DAT',t:'dig',x:26,y:76,l:'DAT'},{id:'GND',t:'gnd',x:54,y:76,l:'GND'}],build:buildSensor},
-  hcsr04:{label:'HC-SR04', w:82,h:82,pins:[{id:'VCC',t:'pwr',x:4,y:76,l:'VCC'},{id:'TRG',t:'dig',x:22,y:76,l:'TRG'},{id:'ECH',t:'dig',x:50,y:76,l:'ECH'},{id:'GND',t:'gnd',x:70,y:76,l:'GND'}],build:buildSensor},
-  pir:   {label:'PIR',     w:70,h:82,pins:[{id:'VCC',t:'pwr',x:6,y:76,l:'VCC'},{id:'OUT',t:'dig',x:30,y:76,l:'OUT'},{id:'GND',t:'gnd',x:54,y:76,l:'GND'}],build:buildSensor},
-  ldr:   {label:'LDR',     w:58,h:76,pins:[{id:'P1',t:'ana',x:8,y:70,l:'1'},{id:'P2',t:'gnd',x:40,y:70,l:'2'}],build:buildSensor},
+  ir:    {label:'IR Sensor',w:70,h:82,pins:[{id:'VCC',t:'pwr',x:6,y:76,l:'VCC'},{id:'OUT',t:'dig',x:30,y:76,l:'OUT'},{id:'GND',t:'gnd',x:54,y:76,l:'GND'}],build:buildSensor},
+  hcsr04:{label:'HC-SR04', w:90,h:45,hidelabels:true,pins:[{id:'VCC',t:'pwr',x:30,y:40,l:''},{id:'TRG',t:'dig',x:40,y:40,l:''},{id:'ECH',t:'dig',x:50,y:40,l:''},{id:'GND',t:'gnd',x:60,y:40,l:''}],build:buildSensor},
+  pir:   {label:'PIR',     w:60,h:60,hidelabels:true,pins:[{id:'VCC',t:'pwr',x:20,y:55,l:''},{id:'OUT',t:'dig',x:30,y:55,l:''},{id:'GND',t:'gnd',x:40,y:55,l:''}],build:buildSensor},
+  ldr:   {label:'LDR',     w:50,h:70,hidelabels:true,pins:[{id:'P1',t:'ana',x:15,y:65,l:''},{id:'P2',t:'gnd',x:35,y:65,l:''}],build:buildSensor},
   mq2:   {label:'MQ-2',    w:70,h:82,pins:[{id:'VCC',t:'pwr',x:4,y:76,l:'VCC'},{id:'AO',t:'ana',x:22,y:76,l:'AO'},{id:'DO',t:'dig',x:44,y:76,l:'DO'},{id:'GND',t:'gnd',x:60,y:76,l:'GND'}],build:buildSensor},
   soil:  {label:'Soil',    w:70,h:82,pins:[{id:'VCC',t:'pwr',x:4,y:76,l:'VCC'},{id:'AO',t:'ana',x:22,y:76,l:'AO'},{id:'DO',t:'dig',x:44,y:76,l:'DO'},{id:'GND',t:'gnd',x:60,y:76,l:'GND'}],build:buildSensor},
   mpu6050:{label:'MPU6050',w:70,h:82,pins:[{id:'VCC',t:'pwr',x:4,y:76,l:'VCC'},{id:'SDA',t:'i2c',x:22,y:76,l:'SDA'},{id:'SCL',t:'i2c',x:44,y:76,l:'SCL'},{id:'GND',t:'gnd',x:60,y:76,l:'GND'}],build:buildSensor},
@@ -1340,6 +587,14 @@ const DEFS = {
   diode:{label:'Diode',w:70,h:34,
     pins:[{id:'A',t:'dig',x:0,y:14,l:'A'},{id:'K',t:'dig',x:62,y:14,l:'K'}],
     build(el){ buildDiode(el); }
+  },
+  breadboard:{label:'Breadboard Small',w:400,h:130,hidelabels:true,
+    pins:[{id:'VCC',t:'pwr',x:10,y:10,l:''},{id:'GND',t:'gnd',x:10,y:120,l:''}],
+    build(el){ el.style.cssText+=';background:transparent;border:none;overflow:visible'; }
+  },
+  battery:{label:'9V Battery',w:120,h:70,hidelabels:true,
+    pins:[{id:'VCC',t:'pwr',x:10,y:20,l:''},{id:'GND',t:'gnd',x:10,y:50,l:''}],
+    build(el){ el.style.cssText+=';background:transparent;border:none;overflow:visible'; }
   },
 };
 
@@ -1412,6 +667,20 @@ function buildSensor(el){
       <ellipse cx="${w/2}" cy="${h/2-6}" rx="8" ry="8" fill="none" stroke="#c8a84b" stroke-width=".5"/>
       <text x="${w/2}" y="${h-20}" font-family="monospace" font-size="6" fill="#f59e0b" text-anchor="middle">HC-SR501</text>`,
 
+    ir: `
+      <!-- IR Obstacle Sensor with Emitter & Receiver LEDs -->
+      <rect x="4" y="14" width="${w-8}" height="${h-30}" rx="4" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <!-- IR Emitter (Blue/Clear LED) -->
+      <circle cx="${w/2-10}" cy="24" r="5" fill="#38bdf8" opacity="0.85" stroke="#0ea5e9" stroke-width="0.8"/>
+      <rect x="${w/2-11.5}" y="24" width="3" height="6" fill="#0ea5e9" opacity="0.6"/>
+      <!-- IR Receiver (Black LED) -->
+      <circle cx="${w/2+10}" cy="24" r="5" fill="#0f172a" stroke="#1e293b" stroke-width="0.8"/>
+      <rect x="${w/2+8.5}" y="24" width="3" height="6" fill="#111"/>
+      <!-- Potentiometer on board -->
+      <rect x="${w/2-8}" y="38" width="16" height="16" rx="2" fill="#0284c7" stroke="#0369a1" stroke-width="0.8"/>
+      <circle cx="${w/2}" cy="46" r="5" fill="#334155"/>
+      <text x="${w/2}" y="${h-17}" font-family="monospace" font-size="7" fill="#38bdf8" text-anchor="middle">IR obstacle</text>`,
+
     ldr: `
       <!-- LDR zigzag pattern -->
       <rect x="4" y="16" width="${w-8}" height="${h-32}" rx="3" fill="#f5f0d0" stroke="#c8a84b" stroke-width="1.5"/>
@@ -1435,8 +704,7 @@ function buildSensor(el){
       <rect x="4" y="14" width="${w-8}" height="${h-30}" rx="3" fill="#1a3a6e" stroke="#2a5a9e" stroke-width="1.2"/>
       <!-- Ventilation holes grid -->
       ${[0,1,2,3,4].map(row=>[0,1,2,3,4].map(col=>`<rect x="${12+col*8}" y="${20+row*8}" width="4" height="4" rx="1" fill="#0a1a3a"/>`).join('')).join('')}
-      <text x="${w/2}" y="${h-17}" font-family="monospace" font-size="7" font-weight="bold" fill="#60a5fa" text-anchor="middle">DHT22</text>
-      <div id="sv-${cid}"></div>`,
+      <text x="${w/2}" y="${h-17}" font-family="monospace" font-size="7" font-weight="bold" fill="#60a5fa" text-anchor="middle">DHT22</text>`,
 
     dht11: `
       <rect x="4" y="14" width="${w-8}" height="${h-30}" rx="3" fill="#1a3a6e" stroke="#2a5a9e" stroke-width="1.2"/>
@@ -1498,10 +766,122 @@ function buildSensor(el){
   <rect x="0" y="12" width="${w}" height="${h-12}" rx="3" fill="${pcb}" stroke="#1a1a2a" stroke-width=".5" opacity=".3"/>
   ${svgContent}
   <!-- Sensor reading display -->
-  <rect x="4" y="${h-30}" width="${w-8}" height="14" rx="2" fill="rgba(0,0,0,0.4)"/>
-  <text id="sv-${cid}" x="${w/2}" y="${h-20}" font-family="monospace" font-size="8" font-weight="bold" fill="#34d399" text-anchor="middle">--</text>
+  <rect id="bg-${cid}" x="4" y="${h-30}" width="${w-8}" height="14" rx="2" fill="rgba(0,0,0,0.4)" style="cursor:col-resize"/>
+  <text id="sv-${cid}" x="${w/2}" y="${h-20}" font-family="monospace" font-size="8" font-weight="bold" fill="#34d399" text-anchor="middle" style="cursor:col-resize;user-select:none">--</text>
   <!-- Pin pads (gold) -->
 </svg>`;
+
+  // Make sensor reading interactive
+  setTimeout(() => {
+    const badge = el.querySelector(`#bg-${cid}`);
+    const textEl = el.querySelector(`#sv-${cid}`);
+    if(!badge || !textEl) return;
+
+    let activeDrag = false;
+    let startX = 0;
+    let startY = 0;
+    let startVal = 0;
+    let startVal2 = 0; // hum or accelY
+
+    const onDown = e => {
+      e.stopPropagation();
+      e.preventDefault();
+      activeDrag = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      const s = getSensorVal(type, cid);
+      s.userControlled = true;
+      
+      if(type.includes('dht') || type === 'ds18b20' || type === 'bme280' || type === 'bmp180') {
+        startVal = s.temp;
+        startVal2 = s.hum || 50;
+      } else if(type === 'hcsr04') {
+        startVal = s.dist;
+      } else if(type === 'mq2') {
+        startVal = s.gas;
+      } else if(type === 'soil') {
+        startVal = s.soil;
+      } else if(type === 'ldr') {
+        startVal = s.lux;
+      } else if(type === 'mpu6050') {
+        startVal = s.accelX || 0;
+        startVal2 = s.accelY || 0;
+      }
+    };
+
+    badge.addEventListener('mousedown', onDown);
+    textEl.addEventListener('mousedown', onDown);
+
+    const onMove = e => {
+      if(!activeDrag) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      const s = getSensorVal(type, cid);
+
+      if(type.includes('dht') || type === 'ds18b20' || type === 'bme280' || type === 'bmp180') {
+        s.temp = Math.max(-40, Math.min(80, startVal + dx * 0.4));
+        if(s.hum !== undefined) {
+          s.hum = Math.max(0, Math.min(100, startVal2 - dy * 0.5));
+        }
+      } else if(type === 'hcsr04') {
+        s.dist = Math.max(2, Math.min(400, startVal + dx * 1.5));
+      } else if(type === 'mq2') {
+        s.gas = Math.max(50, Math.min(900, startVal + dx * 3));
+      } else if(type === 'soil') {
+        s.soil = Math.max(0, Math.min(100, startVal + dx * 0.5));
+      } else if(type === 'ldr') {
+        s.lux = Math.max(0, Math.min(1023, startVal + dx * 4));
+      } else if(type === 'mpu6050') {
+        s.accelX = Math.max(-2, Math.min(2, startVal + dx * 0.02));
+        s.accelY = Math.max(-2, Math.min(2, startVal2 - dy * 0.02));
+      }
+      
+      tickSensors();
+    };
+
+    const onUp = () => {
+      activeDrag = false;
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, 50);
+
+  // Click / Tap events for interactive components
+  if (type === 'rfid') {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const s = getSensorVal(type, cid);
+      s.userControlled = true;
+      s.rfidPresent = !s.rfidPresent;
+      tickSensors();
+    });
+  }
+
+  if (type === 'ir') {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const s = getSensorVal(type, cid);
+      s.userControlled = true;
+      if(s.irClear === undefined) s.irClear = true;
+      s.irClear = !s.irClear;
+      tickSensors();
+    });
+  }
+
+  if (type === 'pir') {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const s = getSensorVal(type, cid);
+      s.userControlled = true;
+      s.pir = true;
+      s.pirTimer = 100; // active for 100 frames (~1.5s)
+      tickSensors();
+    });
+  }
 }
 
 // ── Upgraded passive component renders ─────────────────────────
@@ -1650,6 +1030,13 @@ function buildPotentiometer(el){
       angle = Math.max(-135, Math.min(135, angle + (lastY - e.clientY)*1.5));
       lastY = e.clientY;
       knob.setAttribute('transform',`rotate(${angle},34,37)`);
+
+      // Update state
+      const s = getSensorVal('pot', cid);
+      s.userControlled = true;
+      s.val = Math.round(((angle + 135) / 270) * 1023);
+      updateADCFromSensors();
+      tickSensors();
     });
     document.addEventListener('mouseup',()=>drag=false);
   }
@@ -1693,15 +1080,15 @@ function buildOLED(el){
 <svg viewBox="0 0 92 88" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%">
   <!-- PCB -->
   <rect x="0" y="0" width="92" height="88" rx="4" fill="#1a1a2e" stroke="#2a2a4e" stroke-width="1.2"/>
-  <!-- Display bezel -->
-  <rect x="4" y="8" width="84" height="62" rx="3" fill="#0a0a1a" stroke="#1e1e3e" stroke-width="1.5"/>
+  <!-- Display bezel (2:1 aspect ratio centered) -->
+  <rect x="4" y="15" width="84" height="48" rx="3" fill="#0a0a1a" stroke="#1e1e3e" stroke-width="1.5"/>
   <!-- OLED screen area -->
-  <rect x="7" y="11" width="78" height="56" rx="2" fill="#000010" stroke="#111130" stroke-width=".8"/>
+  <rect x="7" y="19" width="78" height="40" rx="2" fill="#000010" stroke="#111130" stroke-width=".8"/>
   <!-- Screen content — rendered by JS -->
-  <foreignObject x="8" y="12" width="76" height="54">
+  <foreignObject x="8" y="20" width="76" height="38">
     <div xmlns="http://www.w3.org/1999/xhtml"
       id="oled-${cid}"
-      style="width:76px;height:54px;background:#000018;color:#88aaff;font-family:monospace;font-size:8px;padding:3px;line-height:1.5;overflow:hidden;border-radius:2px">
+      style="width:76px;height:38px;background:#000018;color:#88aaff;font-family:'IBM Plex Mono', monospace;font-size:8px;padding:3px;line-height:1.5;overflow:hidden;border-radius:2px">
       SimuLab OLED
     </div>
   </foreignObject>
@@ -1728,7 +1115,7 @@ function buildLCD(el){
   <foreignObject x="6" y="7" width="134" height="48">
     <div xmlns="http://www.w3.org/1999/xhtml"
       id="lcd-${cid}"
-      style="width:134px;height:48px;background:#003300;color:#44ff22;font-family:monospace;font-size:10px;padding:5px 6px;line-height:1.6;letter-spacing:.3px;overflow:hidden">
+      style="width:134px;height:48px;background:#003000;color:#4af922;font-family:\'IBM Plex Mono\', monospace;font-size:9.5px;font-weight:bold;padding:6px 6px;line-height:1.5;letter-spacing:.4px;white-space:pre;overflow:hidden;text-shadow:0 0 2px rgba(74,249,34,0.3)">
       Hello World!
       SimuLab OK!
     </div>
@@ -1825,35 +1212,111 @@ function pinScreen(cid,pid){
   return {x:(c.x+p.x+5)*zoom+px, y:(c.y+p.y+5)*zoom+py};
 }
 
+// Wire color mapping - TinkerCAD style
+const WIRE_CLR = {
+  pwr:  '#ef4444',  // Red for power
+  gnd:  '#475569',  // Dark slate for ground
+  dig:  '#3b82f6',  // Blue for digital
+  ana:  '#f59e0b',  // Amber for analog
+  pwm:  '#a855f7',  // Purple for PWM
+  i2c:  '#06b6d4',  // Cyan for I2C
+  uart: '#10b981',  // Green for UART
+  spi:  '#f97316',  // Orange for SPI
+};
+const WIRE_SIG_COLORS = ['#3b82f6','#10b981','#f59e0b','#a855f7','#ec4899','#06b6d4','#f97316','#84cc16'];
+
+function getWireColor(w, idx) {
+  const fromComp = comps.find(x => x.id === w.fc);
+  const fromPin  = DEFS[fromComp?.type]?.pins?.find(p => p.id === w.fp);
+  const toComp   = comps.find(x => x.id === w.tc);
+  const toPin    = DEFS[toComp?.type]?.pins?.find(p => p.id === w.tp);
+  const pt = fromPin?.t || toPin?.t || 'dig';
+  if(pt === 'pwr') return '#ef4444';
+  if(pt === 'gnd') return '#475569';
+  return WIRE_CLR[pt] || WIRE_SIG_COLORS[idx % WIRE_SIG_COLORS.length];
+}
+
 function drawWires(){
   const W=wCvs.width,H=wCvs.height;
   wCtx.clearRect(0,0,W,H);
-  wCtx.lineWidth=2; wCtx.lineCap='round'; wCtx.lineJoin='round';
+  wCtx.lineCap='round'; wCtx.lineJoin='round';
 
-  wires.forEach(w=>{
+  wires.forEach((w, idx)=>{
     const A=pinScreen(w.fc,w.fp), B=pinScreen(w.tc,w.tp);
     if(!A||!B) return;
-    const fromComp=comps.find(x=>x.id===w.fc);
-    const fromPin=DEFS[fromComp?.type]?.pins?.find(p=>p.id===w.fp);
-    wCtx.strokeStyle=pc(fromPin?.t||'dig')+'cc';
-    wCtx.beginPath(); wCtx.moveTo(A.x,A.y);
-    // Orthogonal routing
-    const mid=(A.x+B.x)/2;
-    wCtx.lineTo(mid,A.y); wCtx.lineTo(mid,B.y); wCtx.lineTo(B.x,B.y);
+    const col = getWireColor(w, idx);
+    const isPwr = col === '#ef4444';
+    const isGnd = col === '#475569';
+    const thickness = isPwr || isGnd ? 3.5 : 2.5;
+
+    // Build path points
+    const pathPts = [A];
+    if(w.points && w.points.length > 0){
+      w.points.forEach(pt => pathPts.push({x: pt.x * zoom + px, y: pt.y * zoom + py}));
+    } else {
+      // Smart orthogonal routing: go horizontal first, then vertical
+      const offset = (idx % 3 - 1) * 8 * zoom;
+      const midX = (A.x + B.x) / 2 + offset;
+      pathPts.push({x: midX, y: A.y});
+      pathPts.push({x: midX, y: B.y});
+    }
+    pathPts.push(B);
+
+    // Draw glow (shadow layer)
+    wCtx.save();
+    wCtx.strokeStyle = col + '44';
+    wCtx.lineWidth = thickness + 4;
+    wCtx.shadowColor = col;
+    wCtx.shadowBlur = isPwr ? 8 : isGnd ? 0 : 6;
+    wCtx.beginPath();
+    pathPts.forEach((pt, i) => i === 0 ? wCtx.moveTo(pt.x, pt.y) : wCtx.lineTo(pt.x, pt.y));
     wCtx.stroke();
-    // Junction dots
-    const col=pc(fromPin?.t||'dig');
-    [A,B].forEach(pt=>{wCtx.fillStyle=col;wCtx.beginPath();wCtx.arc(pt.x,pt.y,3,0,Math.PI*2);wCtx.fill()});
+    wCtx.restore();
+
+    // Draw main wire
+    wCtx.save();
+    wCtx.strokeStyle = col;
+    wCtx.lineWidth = thickness;
+    wCtx.shadowBlur = 0;
+    wCtx.beginPath();
+    pathPts.forEach((pt, i) => i === 0 ? wCtx.moveTo(pt.x, pt.y) : wCtx.lineTo(pt.x, pt.y));
+    wCtx.stroke();
+    wCtx.restore();
+
+    // Junction dots at endpoints
+    [A, B].forEach(pt => {
+      wCtx.save();
+      wCtx.fillStyle = col;
+      wCtx.shadowColor = col;
+      wCtx.shadowBlur = 4;
+      wCtx.beginPath();
+      wCtx.arc(pt.x, pt.y, thickness + 1, 0, Math.PI * 2);
+      wCtx.fill();
+      wCtx.restore();
+    });
   });
 
   // Live wire preview
-  if(wiring&&wireFrom){
+  if(wiring && wireFrom){
     const A=pinScreen(wireFrom.cid,wireFrom.pid); if(!A) return;
-    wCtx.strokeStyle='rgba(167,139,250,.55)'; wCtx.setLineDash([5,5]);
+    wCtx.save();
+    wCtx.strokeStyle='rgba(167,139,250,.7)';
+    wCtx.lineWidth = 2.5;
+    wCtx.setLineDash([6, 4]);
+    wCtx.shadowColor = '#a855f7';
+    wCtx.shadowBlur = 8;
     wCtx.beginPath(); wCtx.moveTo(A.x,A.y);
-    const mid=(A.x+mx)/2;
-    wCtx.lineTo(mid,A.y); wCtx.lineTo(mid,my); wCtx.lineTo(mx,my);
-    wCtx.stroke(); wCtx.setLineDash([]);
+    if(wirePoints && wirePoints.length > 0){
+      wirePoints.forEach(pt => wCtx.lineTo(pt.x * zoom + px, pt.y * zoom + py));
+    }
+    const lastPt = (wirePoints && wirePoints.length > 0)
+      ? {x: wirePoints[wirePoints.length-1].x * zoom + px, y: wirePoints[wirePoints.length-1].y * zoom + py}
+      : A;
+    const mid = (lastPt.x + mx) / 2;
+    wCtx.lineTo(mid, lastPt.y); wCtx.lineTo(mid, my); wCtx.lineTo(mx, my);
+    wCtx.stroke();
+    wCtx.setLineDash([]);
+    wCtx.restore();
   }
 }
 
@@ -1879,6 +1342,349 @@ function drop(e){
   document.getElementById('drag-ghost').style.display='none';
 }
 
+function clickPlace(type) {
+  if(!type||!DEFS[type]) return;
+  const def=DEFS[type];
+  const r=cw.getBoundingClientRect();
+  const cx=(r.width/2-px)/zoom-(def.w||80)/2;
+  const cy=(r.height/2-py)/zoom-(def.h||80)/2;
+  const c = place(type,Math.round(cx/24)*24,Math.round(cy/24)*24);
+  sel(c.id);
+  
+  const info=document.getElementById('canvas-info');
+  if(info){
+    const old=info.textContent;
+    info.textContent=`⚡ Placed ${def.label} in center`;
+    info.style.color='var(--green)';
+    setTimeout(()=>{info.textContent=old;info.style.color=''},2000);
+  }
+}
+
+// Bind click listener to palette scroll container for click-to-place
+document.getElementById('pal-scroll').addEventListener('click', e => {
+  const pitem = e.target.closest('.pitem');
+  if (pitem) {
+    const type = pitem.getAttribute('data-type');
+    clickPlace(type);
+  }
+});
+
+function updateLiveCode() {
+  const currentCode = getEditorValue().trim();
+  const isTemplate = currentCode === '' || Object.values(TEMPLATES).some(t => t.trim() === currentCode);
+  if (!isTemplate) return;
+
+  let bestTemplate = 'uno';
+  const board = comps.find(c => BOARDS.includes(c.type));
+  if (board && TEMPLATES[board.type]) bestTemplate = board.type;
+
+  for (let c of comps) {
+    if (!BOARDS.includes(c.type) && TEMPLATES[c.type]) {
+      bestTemplate = c.type;
+      break;
+    }
+  }
+  
+  if (TEMPLATES[bestTemplate]) loadCode(bestTemplate);
+}
+
+function handleAutoSyncChange() {
+  const cb = document.getElementById('auto-sync-cb');
+  if (cb && cb.checked) {
+    slog('sys', 'Auto-Sync enabled: Code will auto-generate from canvas and auto-compile on changes');
+    triggerAutoSync();
+  } else {
+    slog('sys', 'Auto-Sync disabled');
+  }
+}
+
+let autoSyncTimeout = null;
+function triggerAutoSync() {
+  const cb = document.getElementById('auto-sync-cb');
+  if (!cb || !cb.checked) return;
+
+  if (autoSyncTimeout) clearTimeout(autoSyncTimeout);
+  autoSyncTimeout = setTimeout(async () => {
+    try {
+      generateCodeFromWorkspace();
+      await compileAndRun();
+    } catch(err) {
+      console.error(err);
+    }
+  }, 1000);
+}
+
+function generateCodeFromWorkspace() {
+  const board = comps.find(c => BOARDS.includes(c.type));
+  if (!board) return;
+
+  const adj = {};
+  wires.forEach(w => {
+    const k1 = w.fc + ':' + w.fp;
+    const k2 = w.tc + ':' + w.tp;
+    if (!adj[k1]) adj[k1] = [];
+    if (!adj[k2]) adj[k2] = [];
+    adj[k1].push({ cid: w.tc, pid: w.tp });
+    adj[k2].push({ cid: w.fc, pid: w.fp });
+  });
+
+  const connected = {};
+  const boardPins = DEFS[board.type].pins || [];
+  boardPins.forEach(bp => {
+    const startNode = board.id + ':' + bp.id;
+    if (!adj[startNode]) return;
+
+    const visited = new Set();
+    const q = [startNode];
+    visited.add(startNode);
+    connected[bp.id] = [];
+
+    while (q.length > 0) {
+      const curr = q.shift();
+      const neighbors = adj[curr] || [];
+      
+      neighbors.forEach(n => {
+        const nNode = n.cid + ':' + n.pid;
+        if (!visited.has(nNode)) {
+          visited.add(nNode);
+          const c = comps.find(x => x.id === n.cid);
+          if (!c) return;
+
+          if (c.type === 'res' || c.type === 'diode' || c.type === 'cap') {
+            let otherPin = null;
+            if (c.type === 'res') {
+              otherPin = n.pid === 'P1' ? 'P2' : 'P1';
+            } else if (c.type === 'diode') {
+              otherPin = n.pid === 'A' ? 'K' : 'A';
+            } else if (c.type === 'cap') {
+              otherPin = n.pid === 'P' ? 'N' : 'P';
+            }
+            if (otherPin) {
+              const passThruNode = n.cid + ':' + otherPin;
+              if (!visited.has(passThruNode)) {
+                visited.add(passThruNode);
+                q.push(passThruNode);
+              }
+            }
+          } else if (!BOARDS.includes(c.type)) {
+            connected[bp.id].push({ comp: c, compPin: n.pid });
+          }
+        }
+      });
+    }
+  });
+
+  const includes = new Set();
+  const globals = [];
+  const setupLines = [];
+  const loopReadings = [];
+  const loopActions = [];
+
+  includes.add('// Auto-generated code from workspace layout');
+  globals.push(`// Board: Arduino ${board.type.charAt(0).toUpperCase() + board.type.slice(1)}`);
+
+  const processedComps = new Set();
+  const hasDHT = comps.some(c => c.type === 'dht22' || c.type === 'dht11');
+
+  for (const [pin, targets] of Object.entries(connected)) {
+    for (const target of targets) {
+      const comp = target.comp;
+      const compPin = target.compPin;
+      const compId = comp.id;
+
+      if (processedComps.has(compId + '-' + compPin)) continue;
+      processedComps.add(compId + '-' + compPin);
+
+      if (comp.type.startsWith('led-') && comp.type !== 'rgb') {
+        if (compPin === 'A') {
+          const pinVar = `LED_${pin}`;
+          globals.push(`#define ${pinVar} ${pin.replace('D', '').replace('A', 'A')}`);
+          setupLines.push(`  pinMode(${pinVar}, OUTPUT);`);
+          loopActions.push(`  digitalWrite(${pinVar}, HIGH);`);
+          loopActions.push(`  delay(500);`);
+          loopActions.push(`  digitalWrite(${pinVar}, LOW);`);
+          loopActions.push(`  delay(500);`);
+        }
+      }
+
+      if (comp.type === 'rgb') {
+        if (!processedComps.has(compId)) {
+          processedComps.add(compId);
+          let rPin = null, gPin = null, bPin = null;
+          for (const [p, tgts] of Object.entries(connected)) {
+            for (const t of tgts) {
+              if (t.comp.id === compId) {
+                if (t.compPin === 'R') rPin = p;
+                if (t.compPin === 'G') gPin = p;
+                if (t.compPin === 'B') bPin = p;
+              }
+            }
+          }
+          if (rPin) globals.push(`#define RGB_RED_${rPin} ${rPin.replace('D', '')}`);
+          if (gPin) globals.push(`#define RGB_GREEN_${gPin} ${gPin.replace('D', '')}`);
+          if (bPin) globals.push(`#define RGB_BLUE_${bPin} ${bPin.replace('D', '')}`);
+
+          if (rPin) setupLines.push(`  pinMode(RGB_RED_${rPin}, OUTPUT);`);
+          if (gPin) setupLines.push(`  pinMode(RGB_GREEN_${gPin}, OUTPUT);`);
+          if (bPin) setupLines.push(`  pinMode(RGB_BLUE_${bPin}, OUTPUT);`);
+
+          loopActions.push(`  // RGB color cycling`);
+          if (rPin) loopActions.push(`  analogWrite(RGB_RED_${rPin}, 255);`);
+          if (gPin) loopActions.push(`  analogWrite(RGB_GREEN_${gPin}, 128);`);
+          if (bPin) loopActions.push(`  analogWrite(RGB_BLUE_${bPin}, 0);`);
+          loopActions.push(`  delay(1000);`);
+        }
+      }
+
+      if (comp.type === 'btn') {
+        const pinVar = `BTN_${pin}`;
+        globals.push(`#define ${pinVar} ${pin.replace('D', '').replace('A', 'A')}`);
+        setupLines.push(`  pinMode(${pinVar}, INPUT_PULLUP);`);
+        loopReadings.push(`  int btnState = digitalRead(${pinVar});`);
+        loopReadings.push(`  Serial.print("Button state: "); Serial.println(btnState);`);
+      }
+
+      if (comp.type === 'pot') {
+        if (compPin === 'OUT') {
+          const pinVar = `POT_${pin}`;
+          globals.push(`#define ${pinVar} ${pin.replace('D', '').replace('A', 'A')}`);
+          loopReadings.push(`  int potVal = analogRead(${pinVar});`);
+          loopReadings.push(`  Serial.print("Potentiometer value: "); Serial.println(potVal);`);
+        }
+      }
+
+      if (comp.type === 'buzzer') {
+        if (compPin === 'VCC') {
+          const pinVar = `BUZZER_${pin}`;
+          globals.push(`#define ${pinVar} ${pin.replace('D', '')}`);
+          setupLines.push(`  pinMode(${pinVar}, OUTPUT);`);
+          loopActions.push(`  tone(${pinVar}, 1000); delay(200); noTone(${pinVar}); delay(800);`);
+        }
+      }
+
+      if (comp.type === 'ir') {
+        if (compPin === 'OUT') {
+          const pinVar = `IR_${pin}`;
+          globals.push(`#define ${pinVar} ${pin.replace('D', '').replace('A', 'A')}`);
+          setupLines.push(`  pinMode(${pinVar}, INPUT);`);
+          loopReadings.push(`  int irVal = digitalRead(${pinVar});`);
+          loopReadings.push(`  Serial.print("IR Obstacle: "); Serial.println(irVal);`);
+        }
+      }
+
+      if (comp.type === 'dht22' || comp.type === 'dht11') {
+        if (compPin === 'DAT') {
+          includes.add('#include <DHT.h>');
+          const dhtType = comp.type.toUpperCase();
+          globals.push(`#define DHTPIN ${pin.replace('D', '')}`);
+          globals.push(`#define DHTTYPE ${dhtType}`);
+          globals.push(`DHT dht(DHTPIN, DHTTYPE);`);
+          setupLines.push(`  dht.begin();`);
+          loopReadings.push(`  float temp = dht.readTemperature();`);
+          loopReadings.push(`  float hum = dht.readHumidity();`);
+          loopReadings.push(`  Serial.print("Temp: "); Serial.print(temp);`);
+          loopReadings.push(`  Serial.print(" C, Humidity: "); Serial.print(hum);`);
+          loopReadings.push(`  Serial.println(" %");`);
+        }
+      }
+
+      if (comp.type === 'oled') {
+        if (!processedComps.has(compId)) {
+          processedComps.add(compId);
+          includes.add('#include <Wire.h>');
+          includes.add('#include <Adafruit_SSD1306.h>');
+          globals.push(`#define SCREEN_WIDTH 128`);
+          globals.push(`#define SCREEN_HEIGHT 64`);
+          globals.push(`Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);`);
+          setupLines.push(`  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);`);
+          setupLines.push(`  display.clearDisplay();`);
+          setupLines.push(`  display.setTextSize(1);`);
+          setupLines.push(`  display.setTextColor(SSD1306_WHITE);`);
+          loopActions.push(`  display.clearDisplay();`);
+          loopActions.push(`  display.setCursor(0, 0);`);
+          if (hasDHT) {
+            loopActions.push(`  display.println("  WEATHER STATION  ");`);
+            loopActions.push(`  display.println("---------------------");`);
+            loopActions.push(`  display.print("Temp: ");`);
+            loopActions.push(`  display.print(temp);`);
+            loopActions.push(`  display.println(" C");`);
+            loopActions.push(`  display.print("Humidity: ");`);
+            loopActions.push(`  display.print(hum);`);
+            loopActions.push(`  display.println(" %");`);
+          } else {
+            loopActions.push(`  display.println("SimuLab Auto-Sync!");`);
+          }
+          loopActions.push(`  display.display();`);
+        }
+      }
+
+      if (comp.type === 'lcd') {
+        if (!processedComps.has(compId)) {
+          processedComps.add(compId);
+          includes.add('#include <LiquidCrystal_I2C.h>');
+          globals.push(`LiquidCrystal_I2C lcd(0x27, 16, 2);`);
+          setupLines.push(`  lcd.init();`);
+          setupLines.push(`  lcd.backlight();`);
+          if (hasDHT) {
+            loopActions.push(`  lcd.clear();`);
+            loopActions.push(`  lcd.setCursor(0, 0);`);
+            loopActions.push(`  lcd.print("Temp: "); lcd.print(temp, 1); lcd.print(" C");`);
+            loopActions.push(`  lcd.setCursor(0, 1);`);
+            loopActions.push(`  lcd.print("Hum:  "); lcd.print(hum, 1); lcd.print(" %");`);
+          } else {
+            loopActions.push(`  lcd.setCursor(0, 0);`);
+            loopActions.push(`  lcd.print("SimuLab Sync");`);
+          }
+        }
+      }
+
+      if (comp.type === 'servo') {
+        if (compPin === 'SIG') {
+          includes.add('#include <Servo.h>');
+          const servoName = `myServo_${pin}`;
+          globals.push(`Servo ${servoName};`);
+          setupLines.push(`  ${servoName}.attach(${pin.replace('D', '')});`);
+          loopActions.push(`  ${servoName}.write(90); delay(1000); ${servoName}.write(0); delay(1000);`);
+        }
+      }
+    }
+  }
+
+  const loopLines = [...loopReadings, ...loopActions];
+
+  if (loopLines.length > 0 && !loopLines.some(l => l.includes('delay'))) {
+    const hasDHTLoop = loopLines.some(l => l.includes('dht.'));
+    loopLines.push(hasDHTLoop ? '  delay(2000);' : '  delay(1000);');
+  }
+
+  if (setupLines.length === 0 && loopLines.length === 0) {
+    setupLines.push(`  Serial.begin(9600);`);
+    setupLines.push(`  Serial.println("Auto-Sync Ready. Connect wires to generate code!");`);
+    loopLines.push(`  delay(100);`);
+  } else {
+    const usesSerial = loopLines.some(l => l.includes('Serial.'));
+    if (usesSerial && !setupLines.some(l => l.includes('Serial.begin'))) {
+      setupLines.unshift(`  Serial.begin(9600);`);
+    }
+  }
+
+  const codeLines = [];
+  codeLines.push(...Array.from(includes));
+  codeLines.push('');
+  codeLines.push(...globals);
+  codeLines.push('');
+  codeLines.push('void setup() {');
+  codeLines.push(...setupLines);
+  codeLines.push('}');
+  codeLines.push('');
+  codeLines.push('void loop() {');
+  codeLines.push(...loopLines);
+  codeLines.push('}');
+
+  const generatedCode = codeLines.join('\n');
+  setEditorValue(generatedCode);
+}
+
 function place(type,x,y){
   const id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   const c={id,type,x,y};
@@ -1887,7 +1693,8 @@ function place(type,x,y){
   hideHint();
   updateStatus();
   sel(id);
-  if(BOARDS.includes(type)) loadCode(type);
+  updateLiveCode();
+  triggerAutoSync();
   return c;
 }
 
@@ -1902,23 +1709,70 @@ function renderComp(c){
   card.dataset.cid=c.id; card.dataset.type=c.type;
   card.style.cssText=`width:${def.w}px;height:${def.h}px;position:relative`;
 
-  const hdr=document.createElement('div'); hdr.className='pcomp-header';
-  hdr.innerHTML=`<span>${def.label}</span><button class="pcomp-del" onclick="del('${c.id}')">✕</button>`;
-  card.appendChild(hdr);
+  // Apply Tinkercad photorealistic / flat images if available
+  const tinkercadImgMap = {
+    uno: 'uno.png',
+    btn: 'button.png',
+    pot: 'pot.png',
+    hcsr04: 'ultrasonic.png',
+    pir: 'pir.png',
+    buzzer: 'buzzer.png',
+    servo: 'servo.png',
+    'led-r': 'led.png',
+    'led-g': 'led.png',
+    'led-b': 'led.png',
+    'led-y': 'led.png',
+    ldr: 'ldr.png',
+    battery: 'battery.png',
+    breadboard: 'breadboard.png'
+  };
+
+  const isImageComp = !!tinkercadImgMap[c.type];
+
+  if (!isImageComp) {
+    const hdr=document.createElement('div'); hdr.className='pcomp-header';
+    hdr.innerHTML=`<span>${def.label}</span><button class="pcomp-del" onclick="del('${c.id}')">✕</button>`;
+    card.appendChild(hdr);
+  } else {
+    const delBtn = document.createElement('button');
+    delBtn.className = 'pcomp-del img-del';
+    delBtn.innerHTML = '✕';
+    delBtn.onpointerdown = (e) => { e.stopPropagation(); del(c.id); };
+    card.appendChild(delBtn);
+    card.style.background = 'transparent';
+    card.style.border = 'none';
+  }
 
   if(def.build) def.build.call(DEFS[c.type],card);
+
+
+  if (isImageComp) {
+    // Hide the default SVG so we can use the Tinkercad image instead
+    // We set opacity=0 so interactive elements like the pot knob can still receive invisible clicks
+    const svg = card.querySelector('svg');
+    if (svg) {
+      svg.style.opacity = '0';
+      svg.style.zIndex = '2'; // keep it on top for interaction
+    }
+    
+    const img = document.createElement('img');
+    img.src = '/assets/tinkercad/' + tinkercadImgMap[c.type];
+    img.style.cssText = 'position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; z-index:1;';
+    card.appendChild(img);
+  }
 
   // Pins
   (def.pins||[]).forEach(pin=>{
     const dot=document.createElement('div');
-    dot.className=`pdot ${pin.t}`;
+    dot.className=`pdot ${pin.t} ${isImageComp ? 'hidden-dot' : ''}`;
     dot.style.cssText=`left:${pin.x}px;top:${pin.y}px`;
     dot.dataset.cid=c.id; dot.dataset.pid=pin.id;
 
     // Tooltip
     dot.addEventListener('mouseenter',e=>{
       const tt=document.getElementById('pin-tip');
-      tt.textContent=`${pin.l} · ${pin.t.toUpperCase()}`;
+      const rule = (PIN_GUIDE_RULES[c.type] && PIN_GUIDE_RULES[c.type][pin.id]) ? PIN_GUIDE_RULES[c.type][pin.id].rule : '';
+      tt.innerHTML=`<div style="font-weight:600">${pin.l} (${pin.t.toUpperCase()})</div>` + (rule ? `<div style="font-size:10px;color:var(--purple3);margin-top:2px">💡 ${rule}</div>` : '');
       tt.style.display='block';
       tt.style.left=(e.clientX+12)+'px'; tt.style.top=(e.clientY-6)+'px';
     });
@@ -1932,24 +1786,31 @@ function renderComp(c){
     dot.addEventListener('mouseup',  e=>{e.stopPropagation();endWire(c.id,pin.id)});
 
     // Pin label
-    const lbl=document.createElement('div'); lbl.className='plabel';
-    lbl.textContent=pin.l;
-    lbl.style.cssText=`left:${pin.x+12}px;top:${pin.y}px`;
-    card.appendChild(lbl);
+    if(pin.l && !def.hidelabels) {
+      const lbl=document.createElement('div'); lbl.className='plabel';
+      lbl.textContent=pin.l;
+      lbl.style.cssText=`left:${pin.x+12}px;top:${pin.y}px`;
+      card.appendChild(lbl);
+    }
     card.appendChild(dot);
   });
 
   wrap.appendChild(card);
   cLayer.appendChild(wrap);
 
-  wrap.addEventListener('mousedown',e=>{
+  wrap.addEventListener('pointerdown',e=>{
     if(e.target.classList.contains('pdot')||e.target.classList.contains('pcomp-del')) return;
     if(tool==='wire') return;
-    e.preventDefault();
+    e.preventDefault(); e.stopPropagation();
     sel(c.id); dragging=true; dragC=c;
-    const r=wrap.getBoundingClientRect();
-    dox=e.clientX-r.left; doy=e.clientY-r.top;
+    const r=cw.getBoundingClientRect();
+    // Store offset in world-space so cmMove formula is zoom-independent
+    dox=(e.clientX-r.left-px)/zoom - c.x;
+    doy=(e.clientY-r.top -py)/zoom - c.y;
     wrap.style.zIndex=100;
+    // Attach to document so fast pointer moves don't lose the drag
+    document.addEventListener('pointermove',_docDragMove);
+    document.addEventListener('pointerup',  _docDragUp);
   });
 }
 
@@ -1966,6 +1827,19 @@ function del(id){
   if(selId===id)selId=null;
   updateStatus(); drawWires();
   if(!comps.length) showHint();
+  updateLiveCode();
+  triggerAutoSync();
+}
+
+function cmContext(e){
+  e.preventDefault();
+  if(wiring){
+    wiring=false;
+    wireFrom=null;
+    wirePoints=[];
+    document.body.classList.remove('wiring');
+    drawWires();
+  }
 }
 
 // ── Canvas Mouse ───────────────────────────────────────────────
@@ -1973,27 +1847,43 @@ function cmDown(e){
   if(e.button===1||(e.button===0&&e.altKey)){panning=true;psx=e.clientX-px;psy=e.clientY-py;cw.style.cursor='grabbing';return}
   if([cw,cLayer,wCvs,gCvs].includes(e.target)){
     sel(null);
-    if(wiring){wiring=false;wireFrom=null;document.body.classList.remove('wiring');drawWires()}
+    if(wiring){
+      const r=cw.getBoundingClientRect();
+      const clickMx=e.clientX-r.left;
+      const clickMy=e.clientY-r.top;
+      const wx=(clickMx-px)/zoom;
+      const wy=(clickMy-py)/zoom;
+      wirePoints.push({x:wx,y:wy});
+      drawWires();
+      return;
+    }
   }
 }
 function cmMove(e){
   const r=cw.getBoundingClientRect(); mx=e.clientX-r.left; my=e.clientY-r.top;
   if(panning){px=e.clientX-psx;py=e.clientY-psy;updateAllPos();drawGrid();drawWires()}
-  if(dragging&&dragC){
-    const r2=cw.getBoundingClientRect();
-    const nx=(e.clientX-r2.left-px-dox*zoom)/zoom;
-    const ny=(e.clientY-r2.top-py-doy*zoom)/zoom;
-    dragC.x=Math.round(nx/24)*24; dragC.y=Math.round(ny/24)*24;
-    const el=document.getElementById('pc-'+dragC.id);
-    if(el){el.style.left=(dragC.x*zoom+px)+'px';el.style.top=(dragC.y*zoom+py)+'px'}
-    drawWires();
-  }
   if(wiring) drawWires();
 }
 function cmUp(e){
-  dragging=false; dragC=null;
   if(panning){panning=false;cw.style.cursor=''}
+}
+// Document-level drag handlers (attached on mousedown, removed on mouseup)
+function _docDragMove(e){
+  if(!dragging||!dragC) return;
+  const r=cw.getBoundingClientRect();
+  // World-space position minus the click offset (both already in world-space)
+  const nx=(e.clientX-r.left-px)/zoom - dox;
+  const ny=(e.clientY-r.top -py)/zoom - doy;
+  dragC.x=Math.round(nx/24)*24; dragC.y=Math.round(ny/24)*24;
+  const el=document.getElementById('pc-'+dragC.id);
+  if(el){el.style.left=(dragC.x*zoom+px)+'px';el.style.top=(dragC.y*zoom+py)+'px'}
+  drawWires();
+}
+function _docDragUp(e){
+  dragging=false; dragC=null;
   document.querySelectorAll('.pcomp').forEach(el=>el.style.zIndex='');
+  document.removeEventListener('pointermove',_docDragMove);
+  document.removeEventListener('pointerup',  _docDragUp);
 }
 function cmWheel(e){
   e.preventDefault();
@@ -2018,23 +1908,31 @@ function zr(){zoom=1;px=0;py=0;updateAllPos();drawGrid();drawWires();document.ge
 
 // ── Wiring ─────────────────────────────────────────────────────
 function startWire(cid,pid){
-  if(wiring){wiring=false;wireFrom=null;document.body.classList.remove('wiring');drawWires();return}
-  wiring=true; wireFrom={cid,pid};
+  if(wiring){
+    if(wireFrom && (wireFrom.cid !== cid || wireFrom.pid !== pid)) {
+      endWire(cid, pid);
+    } else {
+      wiring=false;wireFrom=null;wirePoints=[];document.body.classList.remove('wiring');drawWires();
+    }
+    return;
+  }
+  wiring=true; wireFrom={cid,pid}; wirePoints=[];
   document.body.classList.add('wiring');
 }
 function endWire(cid,pid){
   if(!wiring||!wireFrom) return;
-  if(wireFrom.cid===cid&&wireFrom.pid===pid){wiring=false;wireFrom=null;document.body.classList.remove('wiring');drawWires();return}
+  if(wireFrom.cid===cid&&wireFrom.pid===pid) return;
   // Prevent duplicate wires
   const exists=wires.find(w=>(w.fc===wireFrom.cid&&w.fp===wireFrom.pid&&w.tc===cid&&w.tp===pid)||(w.fc===cid&&w.fp===pid&&w.tc===wireFrom.cid&&w.tp===wireFrom.pid));
   if(!exists){
-    wires.push({id:'w'+Date.now(),fc:wireFrom.cid,fp:wireFrom.pid,tc:cid,tp:pid});
+    wires.push({id:'w'+Date.now(),fc:wireFrom.cid,fp:wireFrom.pid,tc:cid,tp:pid,points:[...wirePoints]});
     [document.querySelector(`[data-cid="${wireFrom.cid}"][data-pid="${wireFrom.pid}"]`),
      document.querySelector(`[data-cid="${cid}"][data-pid="${pid}"]`)].forEach(p=>p?.classList.add('connected'));
     slog('sys',`Wire: ${wireFrom.pid}@${wireFrom.cid.slice(-4)} ↔ ${pid}@${cid.slice(-4)}`);
   }
-  wiring=false; wireFrom=null; document.body.classList.remove('wiring');
+  wiring=false; wireFrom=null; wirePoints=[]; document.body.classList.remove('wiring');
   drawWires(); updateStatus();
+  triggerAutoSync();
 }
 
 // ── Tool ───────────────────────────────────────────────────────
@@ -2063,8 +1961,14 @@ async function toggleRun(){
 }
 
 async function compileAndRun(){
+  if(isCompiling) return;
+  if(!comps.some(c=>BOARDS.includes(c.type))){
+    alert('Please place a microcontroller board (e.g., Arduino Uno) on the workspace first!');
+    return;
+  }
   const code=getEditorValue();
   if(!code.trim()){alert('Write some code first!');return}
+  isCompiling=true;
   setStatus('compile','Compiling...');
   hideErr(); clearSerial(); clearMonacoErrors();
   slog('sys','═══ SimuLab Compiler ═══');
@@ -2095,6 +1999,8 @@ async function compileAndRun(){
     slog('sys','⚠ Compile server offline (run: node compile-server.js)');
     slog('sys','Starting demo simulation...');
     startDemo();
+  } finally {
+    isCompiling=false;
   }
 }
 
@@ -2123,6 +2029,28 @@ function startAVR(hexStr){
   const avr=window.avr8js;
   const mem=parseHex(hexStr);
   cpu=new avr.CPU(new Uint16Array(mem.buffer));
+  // Pre-seed GPIOR1/GPIOR2 (0x4A/0x4B) with the CURRENT sensor state values
+  // so DHT.readTemperature() gets the right answer even on the very first call
+  const _seedDHT = comps.find(c => c.type === 'dht22' || c.type === 'dht11');
+  const _seedBME = !_seedDHT && comps.find(c => c.type === 'bme280');
+  const _seedBMP = !_seedDHT && !_seedBME && comps.find(c => c.type === 'bmp180');
+  const _seedDS  = !_seedDHT && !_seedBME && !_seedBMP && comps.find(c => c.type === 'ds18b20');
+  const _seedSrc = _seedDHT || _seedBME || _seedBMP || _seedDS;
+  if(_seedSrc){
+    const _sv = getSensorVal(_seedSrc.type, _seedSrc.id);
+    cpu.data[0x4A] = Math.max(0, Math.min(255, Math.floor(_sv.temp + 40)));
+    cpu.data[0x4B] = Math.max(0, Math.min(255, Math.floor(_sv.hum || 60)));
+  } else {
+    cpu.data[0x4A] = 64; // 24°C + 40
+    cpu.data[0x4B] = 60; // 60% humidity
+  }
+  // Virtual registers for Ultrasonic distance, RFID presence, MPU accel
+  cpu.data[0xF0] = 30; // default 30cm distance
+  cpu.data[0xF1] = 0;  // no RFID card
+  cpu.data[0xF2] = 128; // MPU6050 accel X (mid-scale = 0g)
+  cpu.data[0xF3] = 128; // MPU6050 accel Y
+  cpu.data[0xF4] = 255; // MPU6050 accel Z (full = +2g, gravity down)
+
 
   // Timers (needed for delay/millis)
   new avr.AVRTimer(cpu,avr.timer0Config);
@@ -2130,9 +2058,9 @@ function startAVR(hexStr){
   new avr.AVRTimer(cpu,avr.timer2Config);
 
   // USART → Serial
-  const usart=new avr.AVRUSART(cpu,avr.usart0Config,16e6);
+  activeUSART=new avr.AVRUSART(cpu,avr.usart0Config,16e6);
   serialBuf='';
-  usart.onByteTransmit=byte=>{
+  activeUSART.onByteTransmit=byte=>{
     const ch=String.fromCharCode(byte);
     if(ch==='\n'){
       if(serialBuf){
@@ -2165,30 +2093,30 @@ function startAVR(hexStr){
   const watchers=buildWatchers();
   slog('sys',`GPIO watchers: ${watchers.length}`);
 
-  // portB listener: args are (pinMask, state) where pinMask is bitmask (e.g. 0b00100000 = bit5 = D13)
-  portB.addListener((pinMask, state)=>{
-    const high = state === avr.PinState.High;
-    // D13 = PB5 = bitmask 0b00100000 = 32
-    if(pinMask & (1<<5)) setD13Led(high);
-    // Check each watcher for port B
-    watchers.filter(w=>w.port==='B').forEach(w=>{
-      if(pinMask & (1<<w.bit)) applyGPIO(w, high);
-    });
-    // No wires? Blink all placed LEDs from D13
-    if(!watchers.length && (pinMask & (1<<5))) updateAllLEDs(high);
-  });
-  portD.addListener((pinMask,state)=>{
-    const high=state===avr.PinState.High;
-    watchers.filter(w=>w.port==='D').forEach(w=>{
-      if(pinMask & (1<<w.bit)) applyGPIO(w,high);
-    });
-  });
-  portC.addListener((pinMask,state)=>{
-    const high=state===avr.PinState.High;
-    watchers.filter(w=>w.port==='C').forEach(w=>{
-      if(pinMask & (1<<w.bit)) applyGPIO(w,high);
-    });
-  });
+  function makePortListener(port, portLetter) {
+    return (value, oldValue) => {
+      if(portLetter === 'B') {
+        const pin13Changed = (oldValue === undefined) || ((value & 32) !== (oldValue & 32));
+        if(pin13Changed) setD13Led((value & 32) !== 0);
+        if(!watchers.length && pin13Changed) updateAllLEDs((value & 32) !== 0);
+      }
+      const pwm = readPWMValues(cpu);
+      watchers.filter(w => w.port === portLetter).forEach(w => {
+        const mask = 1 << w.bit;
+        const high = (value & mask) !== 0;
+        const changed = (oldValue === undefined) || ((value & mask) !== (oldValue & mask));
+        if(changed) {
+          // Pass PWM value if this is a PWM-capable pin
+          const pwmPins = [3,5,6,9,10,11];
+          const pwm8 = pwmPins.includes(w.num) ? pwm[w.num] : undefined;
+          applyGPIO(w, high, pwm8);
+        }
+      });
+    };
+  }
+  portB.addListener(makePortListener(portB, 'B'));
+  portD.addListener(makePortListener(portD, 'D'));
+  portC.addListener(makePortListener(portC, 'C'));
 
   // Use requestAnimationFrame — smoother, ~60fps, ~266k cycles per frame
   const CYCLES_PER_FRAME = Math.floor(16_000_000/60);
@@ -2200,9 +2128,17 @@ function startAVR(hexStr){
       frameCount++;
       if(frameCount%10===0){
         document.getElementById('sb-cycles').textContent=`Cycles: ${(totalCycles/1e6).toFixed(2)}M`;
-        tickSensors();
       }
-    }catch(e){slog('err','CPU fault: '+e.message);stopSim();return}
+      // Update sensor registers every frame to ensure C++ stubs always read fresh values
+      updateADCFromSensors();
+      if(frameCount%20===0) tickSensors(); // update display 3x/sec
+    }catch(e){
+      console.error('CPU Fault Error:', e);
+      slog('err','CPU fault: '+e.message);
+      if(e.stack) slog('err', e.stack.split('\n').slice(0, 3).join('\n'));
+      stopSim();
+      return;
+    }
     cpuTmr=requestAnimationFrame(tick);
   }
   cpuTmr=requestAnimationFrame(tick);
@@ -2211,56 +2147,172 @@ function startAVR(hexStr){
 }
 
 function buildWatchers(){
-  const out=[];
-  wires.forEach(w=>{
-    const ends=[{cid:w.fc,pid:w.fp},{cid:w.tc,pid:w.tp}];
-    let brd=null,cmp=null;
-    ends.forEach(e=>{
-      const c=comps.find(x=>x.id===e.cid);
-      if(!c) return;
-      if(BOARDS.includes(c.type)) brd={...e,comp:c};
-      else cmp={...e,comp:c};
+  const PASSIVES = new Set(['res','cap','diode']);
+
+  // Build adjacency: compId:pinId -> [{compId, pinId}]
+  function buildAdj() {
+    const adj = {};
+    const add = (k, v) => { if(!adj[k]) adj[k]=[]; adj[k].push(v); };
+    wires.forEach(w => {
+      add(w.fc+':'+w.fp, {cid:w.tc, pid:w.tp});
+      add(w.tc+':'+w.tp, {cid:w.fc, pid:w.fp});
     });
-    if(!brd||!cmp) return;
-    const num=PIN_LABEL_NUM[brd.pid]; if(num===undefined) return;
-    const map=PIN_MAP[num]; if(!map) return;
-    out.push({port:map.p,bit:map.b,num,compId:cmp.cid,compType:cmp.comp.type,pinId:cmp.pid,boardPin:brd.pid});
+    return adj;
+  }
+
+  // BFS from a component pin → find connected board pin
+  // Traverses through passives, never recurses
+  function findBoardPin(startCid, startPid, adj) {
+    const queue = [{cid:startCid, pid:startPid}];
+    const visited = new Set([startCid+':'+startPid]);
+    while(queue.length) {
+      const {cid, pid} = queue.shift();
+      const neighbors = adj[cid+':'+pid] || [];
+      for(const n of neighbors) {
+        const key = n.cid+':'+n.pid;
+        if(visited.has(key)) continue;
+        visited.add(key);
+        const c = comps.find(x => x.id===n.cid);
+        if(!c) continue;
+        // Found a board — return this pin
+        if(BOARDS.includes(c.type)) return {cid:n.cid, pid:n.pid};
+        // If passive, enqueue its OTHER pins to continue traversal
+        if(PASSIVES.has(c.type)) {
+          const def = DEFS[c.type];
+          if(def && def.pins) {
+            def.pins.forEach(p => {
+              const k2 = n.cid+':'+p.id;
+              if(!visited.has(k2)) queue.push({cid:n.cid, pid:p.id});
+            });
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  const adj = buildAdj();
+  const out = [];
+
+  comps.forEach(cmp => {
+    if(BOARDS.includes(cmp.type)) return;
+    if(PASSIVES.has(cmp.type)) return;
+    const def = DEFS[cmp.type]; if(!def) return;
+    (def.pins||[]).forEach(pin => {
+      if(pin.t==='gnd' || pin.t==='vcc') return;
+      const brd = findBoardPin(cmp.id, pin.id, adj);
+      if(!brd) return;
+      const num = PIN_LABEL_NUM[brd.pid]; if(num===undefined) return;
+      const map = PIN_MAP[num]; if(!map) return;
+      if(out.some(o => o.compId===cmp.id && o.pinId===pin.id)) return;
+      out.push({port:map.p, bit:map.b, num, compId:cmp.id, compType:cmp.type, pinId:pin.id, boardPin:brd.pid});
+    });
   });
   return out;
 }
 
-function applyGPIO(w,high){
-  if(w.compType.startsWith('led-')||w.compType==='rgb'){
-    if(w.pinId==='A'||w.pinId==='R'||w.pinId==='G'||w.pinId==='B'){
-      const g=document.getElementById('ledg-'+w.compId);
-      if(g){
-        const color=DEFS[w.compType]?.color||'#fff';
-        g.style.background=high?color:color+'22';
-        g.style.boxShadow=high?`0 0 18px ${color},0 0 36px ${color}66`:'none';
+// Track PWM values per component pin
+const pwmValues = {};
+
+function applyGPIO(w, high, pwm8bit) {
+  // PWM value: 0-255, undefined = digital
+  const brightness = (pwm8bit !== undefined) ? pwm8bit / 255 : (high ? 1 : 0);
+
+  if(w.compType.startsWith('led-')) {
+    if(w.pinId==='A'||w.pinId==='R'||w.pinId==='G'||w.pinId==='B') {
+      const g = document.getElementById('ledg-' + w.compId);
+      if(g) {
+        const color = DEFS[w.compType]?.color || '#fff';
+        if(brightness > 0) {
+          g.style.fill    = color;
+          g.style.opacity = String(0.15 + brightness * 0.85);
+          g.style.filter  = `drop-shadow(0 0 ${Math.round(brightness*14)}px ${color})`;
+        } else {
+          g.style.fill    = color;
+          g.style.opacity = '0.08';
+          g.style.filter  = 'none';
+        }
+        g.style.background = brightness > 0 ? color : color + '22';
+        g.style.boxShadow  = brightness > 0
+          ? `0 0 ${Math.round(brightness*18)}px ${color}, 0 0 ${Math.round(brightness*36)}px ${color}66`
+          : 'none';
       }
     }
   }
-  if(w.compType==='buzzer'){
-    const el=document.getElementById('pc-'+w.compId);
-    if(el) el.style.filter=high?'brightness(1.6) hue-rotate(30deg)':'';
+
+  if(w.compType === 'rgb') {
+    if(!rgbStates[w.compId]) rgbStates[w.compId] = { r:0, g:0, b:0 };
+    const state = rgbStates[w.compId];
+    const val = Math.round(brightness * 255);
+    if(w.pinId === 'R') state.r = val;
+    if(w.pinId === 'G') state.g = val;
+    if(w.pinId === 'B') state.b = val;
+
+    const g = document.getElementById('ledg-' + w.compId);
+    if(g) {
+      const activeColor = `rgb(${state.r},${state.g},${state.b})`;
+      const totalBrightness = Math.max(state.r, state.g, state.b) / 255;
+      if(totalBrightness > 0) {
+        g.style.fill    = activeColor;
+        g.style.opacity = String(0.15 + totalBrightness * 0.85);
+        g.style.filter  = `drop-shadow(0 0 ${Math.round(totalBrightness*14)}px ${activeColor})`;
+      } else {
+        g.style.fill    = '#fff';
+        g.style.opacity = '0.08';
+        g.style.filter  = 'none';
+      }
+      g.style.background = totalBrightness > 0 ? activeColor : '#ffffff22';
+      g.style.boxShadow  = totalBrightness > 0
+        ? `0 0 ${Math.round(totalBrightness*18)}px ${activeColor}, 0 0 ${Math.round(totalBrightness*36)}px ${activeColor}66`
+        : 'none';
+    }
   }
-  if(w.compType==='servo'&&w.pinId==='SIG'){
-    const h=document.getElementById('servohorn-'+w.compId);
-    if(h) h.style.transform=`rotate(${high?90:0}deg)`;
+
+  if(w.compType === 'buzzer') {
+    const el = document.getElementById('pc-' + w.compId);
+    if(el) el.style.filter = high ? 'brightness(1.6) hue-rotate(30deg)' : '';
+    // Animate buzzer ring SVG if present
+    const ring = el?.querySelector('ellipse');
+    if(ring) ring.style.stroke = high ? '#f0883e' : '#404060';
   }
-  if(w.compType==='oled'&&high){
-    const s=document.getElementById('oled-'+w.compId);
-    if(s) s.style.color='#aabbff';
+
+  if(w.compType === 'servo' && w.pinId === 'SIG') {
+    const h = document.getElementById('servohorn-' + w.compId);
+    if(h) {
+      // PWM duty → angle (1ms=0°, 2ms=180° at 50Hz, 8-bit: 26=0°, 128=90°, 230=180°)
+      const angle = pwm8bit !== undefined ? Math.round((pwm8bit / 255) * 180) : (high ? 90 : 0);
+      h.style.transition = 'transform 0.12s ease';
+      h.style.transform  = `rotate(${angle}deg)`;
+      const sv = document.getElementById('sv-' + w.compId);
+      if(sv) sv.textContent = angle + '°';
+    }
+  }
+
+  if(w.compType === 'oled' && high) {
+    const s = document.getElementById('oled-' + w.compId);
+    if(s) s.style.color = '#aabbff';
   }
 }
 
-function updateAllLEDs(on){
-  comps.forEach(c=>{
-    if(!c.type.startsWith('led-')) return;
-    if(wires.find(w=>w.fc===c.id||w.tc===c.id)) return;
-    const g=document.getElementById('ledg-'+c.id);
-    if(g){const col=DEFS[c.type]?.color||'#fff';g.style.background=on?col:col+'22';g.style.boxShadow=on?`0 0 18px ${col},0 0 36px ${col}66`:'none'}
+// PWM intercept: hook into Timer output compare on portB/D
+// analogWrite(pin, val) sets OCR registers → AVRTimer fires
+// We read TCCR and OCR values directly from CPU RAM
+function readPWMValues(cpu) {
+  if(!cpu) return {};
+  const pwm = {};
+  // OCR registers for common PWM pins (ATmega328P datasheet)
+  // D3=OC2B(OCR2B=0xB4), D5=OC0B(OCR0B=0x48), D6=OC0A(OCR0A=0x47)
+  // D9=OC1A(OCR1AL=0x88), D10=OC1B(OCR1BL=0x8A), D11=OC2A(OCR2A=0xB3)
+  const ocrMap = {3:0xB4, 5:0x48, 6:0x47, 9:0x88, 10:0x8A, 11:0xB3};
+  Object.entries(ocrMap).forEach(([pin, addr]) => {
+    pwm[Number(pin)] = cpu.data[addr] || 0;
   });
+  return pwm;
+}
+
+function updateAllLEDs(on){
+  // Unwired LEDs should NOT blink automatically.
+  // Previously this blinked all LEDs on the canvas if they were unwired, which was confusing.
 }
 
 function setD13Led(on){
@@ -2271,24 +2323,48 @@ function setD13Led(on){
 // ── Sensor state (changes slowly, not every frame) ────────────
 const sensorState = {};
 function getSensorVal(type, cid) {
-  if(!sensorState[cid]) sensorState[cid] = { temp:24+Math.random()*4, hum:55+Math.random()*20, dist:20+Math.random()*60, gas:150+Math.random()*200, soil:50+Math.random()*30, lux:400+Math.random()*400, pir:false, pirTimer:0 };
+  if(!sensorState[cid]) sensorState[cid] = {
+    temp: 24+Math.random()*4,
+    hum: 55+Math.random()*20,
+    dist: 20+Math.random()*60,
+    gas: 150+Math.random()*200,
+    soil: 50+Math.random()*30,
+    lux: 400+Math.random()*400,
+    pir: false,
+    pirTimer: 0,
+    accelX: 0,
+    accelY: 0,
+    accelZ: 1.0,
+    rfidPresent: false,
+    irClear: true,
+    userControlled: false
+  };
   const s = sensorState[cid];
-  // Slowly drift values for realism
-  s.temp   += (Math.random()-.5)*.1;
-  s.hum    += (Math.random()-.5)*.3;
-  s.dist   += (Math.random()-.5)*2;
-  s.gas    += (Math.random()-.5)*5;
-  s.soil   += (Math.random()-.5)*.5;
-  s.lux    += (Math.random()-.5)*10;
-  s.temp   = Math.max(15, Math.min(45, s.temp));
-  s.hum    = Math.max(20, Math.min(95, s.hum));
-  s.dist   = Math.max(2,  Math.min(400,s.dist));
-  s.gas    = Math.max(50, Math.min(900,s.gas));
-  s.soil   = Math.max(0,  Math.min(100,s.soil));
-  s.lux    = Math.max(0,  Math.min(1023,s.lux));
-  // PIR random motion events
-  s.pirTimer--;
-  if(s.pirTimer<=0){ s.pir=Math.random()>.85; s.pirTimer=Math.floor(Math.random()*20+5); }
+  if(!s.userControlled) {
+    // Slowly drift values for realism
+    s.temp   += (Math.random()-.5)*.1;
+    s.hum    += (Math.random()-.5)*.3;
+    s.dist   += (Math.random()-.5)*2;
+    s.gas    += (Math.random()-.5)*5;
+    s.soil   += (Math.random()-.5)*.5;
+    s.lux    += (Math.random()-.5)*10;
+  }
+  s.temp   = Math.max(-40, Math.min(80, s.temp));
+  s.hum    = Math.max(0,   Math.min(100, s.hum));
+  s.dist   = Math.max(2,   Math.min(400, s.dist));
+  s.gas    = Math.max(50,  Math.min(900, s.gas));
+  s.soil   = Math.max(0,   Math.min(100, s.soil));
+  s.lux    = Math.max(0,   Math.min(1023, s.lux));
+  
+  if(!s.userControlled) {
+    s.pirTimer--;
+    if(s.pirTimer<=0){ s.pir=Math.random()>.85; s.pirTimer=Math.floor(Math.random()*20+5); }
+  } else {
+    if(s.pir) {
+      s.pirTimer--;
+      if(s.pirTimer<=0) { s.pir=false; s.userControlled=false; }
+    }
+  }
   return s;
 }
 
@@ -2297,7 +2373,7 @@ function sensorToADC(type, cid) {
   const s = getSensorVal(type, cid);
   const map = {
     ldr:    ()=> Math.floor(s.lux),
-    pot:    ()=> Math.floor(Math.random()*1023),
+    pot:    ()=> s.val !== undefined ? s.val : 512,
     mq2:    ()=> Math.floor(s.gas / 900 * 1023),
     soil:   ()=> Math.floor(s.soil / 100 * 1023),
     dht22:  ()=> Math.floor((s.temp+40) / 125 * 1023),
@@ -2332,6 +2408,110 @@ function updateADCFromSensors() {
     const adcVal = sensorToADC(sensor.type, sensor.id);
     avrADC.channelValues[ch] = adcVal;
   });
+
+  // Feed DHT/DS18B20/BMP/BME sensor values into unused ADC channels 6 and 7 for direct C++ reading
+  // Also write to GPIOR1 (0x4A) and GPIOR2 (0x4B) registers for guaranteed 100% reliable direct register reading
+  const firstDHT = comps.find(c => c.type === 'dht22' || c.type === 'dht11');
+  if(firstDHT) {
+    const s = getSensorVal(firstDHT.type, firstDHT.id);
+    const tempADC = Math.max(0, Math.min(1023, Math.floor((s.temp + 40) / 120 * 1023)));
+    const humADC = Math.max(0, Math.min(1023, Math.floor(s.hum / 100 * 1023)));
+    avrADC.channelValues[6] = tempADC;
+    avrADC.channelValues[7] = humADC;
+    if(cpu) {
+      cpu.data[0x4A] = Math.max(0, Math.min(255, Math.floor(s.temp + 40)));
+      cpu.data[0x4B] = Math.max(0, Math.min(255, Math.floor(s.hum)));
+    }
+  } else {
+    const firstDS = comps.find(c => c.type === 'ds18b20');
+    if(firstDS) {
+      const s = getSensorVal(firstDS.type, firstDS.id);
+      const tempADC = Math.max(0, Math.min(1023, Math.floor((s.temp + 40) / 120 * 1023)));
+      avrADC.channelValues[6] = tempADC;
+      if(cpu) {
+        cpu.data[0x4A] = Math.max(0, Math.min(255, Math.floor(s.temp + 40)));
+      }
+    } else {
+      const firstBME = comps.find(c => c.type === 'bme280');
+      if(firstBME) {
+        const s = getSensorVal(firstBME.type, firstBME.id);
+        const tempADC = Math.max(0, Math.min(1023, Math.floor((s.temp + 40) / 120 * 1023)));
+        const humADC = Math.max(0, Math.min(1023, Math.floor(s.hum / 100 * 1023)));
+        avrADC.channelValues[6] = tempADC;
+        avrADC.channelValues[7] = humADC;
+        if(cpu) {
+          cpu.data[0x4A] = Math.max(0, Math.min(255, Math.floor(s.temp + 40)));
+          cpu.data[0x4B] = Math.max(0, Math.min(255, Math.floor(s.hum)));
+        }
+      } else {
+        const firstBMP = comps.find(c => c.type === 'bmp180');
+        if(firstBMP) {
+          const s = getSensorVal(firstBMP.type, firstBMP.id);
+          const tempADC = Math.max(0, Math.min(1023, Math.floor((s.temp + 40) / 120 * 1023)));
+          avrADC.channelValues[6] = tempADC;
+          if(cpu) {
+            cpu.data[0x4A] = Math.max(0, Math.min(255, Math.floor(s.temp + 40)));
+          }
+        }
+      }
+    }
+  }
+
+  // ── Virtual sensor registers (0xF0–0xF4) for NewPing, RFID, MPU6050 ──
+  if(!cpu) return;
+  const firstUltrasonic = comps.find(c => c.type === 'hcsr04');
+  if(firstUltrasonic){
+    const s = getSensorVal('hcsr04', firstUltrasonic.id);
+    cpu.data[0xF0] = Math.max(0, Math.min(255, Math.floor(s.dist)));
+  }
+  const firstRFID = comps.find(c => c.type === 'rfid');
+  if(firstRFID){
+    const s = getSensorVal('rfid', firstRFID.id);
+    cpu.data[0xF1] = s.rfidPresent ? 1 : 0;
+  }
+  const firstMPU = comps.find(c => c.type === 'mpu6050');
+  if(firstMPU){
+    const s = getSensorVal('mpu6050', firstMPU.id);
+    // Map g-force (-2 to +2) → 0-255: 0g = 128
+    const gToReg = g => Math.max(0, Math.min(255, Math.round((g + 2) / 4 * 255)));
+    cpu.data[0xF2] = gToReg(s.accelX || 0);
+    cpu.data[0xF3] = gToReg(s.accelY || 0);
+    cpu.data[0xF4] = gToReg(s.accelZ !== undefined ? s.accelZ : 1.0);
+  }
+}
+
+function updateDigitalFromSensors() {
+  if(!running || !avrPorts) return;
+  comps.forEach(c => {
+    if(c.type === 'pir' || c.type === 'ir') {
+      const s = getSensorVal(c.type, c.id);
+      let isHigh = false;
+      if (c.type === 'pir') {
+        isHigh = s.pir;
+      } else if (c.type === 'ir') {
+        isHigh = !s.irClear; // active low: low when blocked, high when clear
+      }
+      
+      const myWires = wires.filter(w => (w.fc===c.id && w.fp==='OUT') || (w.tc===c.id && w.tp==='OUT'));
+      myWires.forEach(wire => {
+        const ends = [{cid:wire.fc, pid:wire.fp}, {cid:wire.tc, pid:wire.tp}];
+        const brdEnd = ends.find(e => {
+          const x = comps.find(y => y.id===e.cid);
+          return x && BOARDS.includes(x.type);
+        });
+        if(!brdEnd) return;
+        const num = PIN_LABEL_NUM[brdEnd.pid];
+        if(num === undefined) return;
+        const map = PIN_MAP[num];
+        if(!map) return;
+        const port = avrPorts[map.p];
+        if(!port) return;
+        
+        const avr = window.avr8js;
+        port.setPin(map.bit, isHigh ? avr.PinState.High : avr.PinState.Low);
+      });
+    }
+  });
 }
 
 function tickSensors(){
@@ -2339,24 +2519,25 @@ function tickSensors(){
     const el=document.getElementById('sv-'+c.id); if(!el) return;
     const s = getSensorVal(c.type, c.id);
     const display = {
-      dht22:   ()=>`${s.temp.toFixed(1)}°C`,
-      dht11:   ()=>`${s.temp.toFixed(0)}°C`,
+      dht22:   ()=>`${s.temp.toFixed(1)}°C / ${s.hum.toFixed(0)}%`,
+      dht11:   ()=>`${s.temp.toFixed(0)}°C / ${s.hum.toFixed(0)}%`,
       hcsr04:  ()=>`${s.dist.toFixed(1)} cm`,
       pir:     ()=>s.pir ? '🔴 MOTION' : '⚫ IDLE',
       ldr:     ()=>`${s.lux.toFixed(0)} lx`,
       mq2:     ()=>`${s.gas.toFixed(0)} ppm`,
       soil:    ()=>`${s.soil.toFixed(0)}%`,
-      mpu6050: ()=>`X:${((Math.random()-.5)*.4).toFixed(2)}g`,
-      bmp180:  ()=>`${(1013+Math.random()*4).toFixed(0)} hPa`,
-      bme280:  ()=>`${(1013+Math.random()*4).toFixed(0)} hPa`,
-      rfid:    ()=>Math.random()>.97?'4A:2B:9C':'—',
+      mpu6050: ()=>`X:${s.accelX.toFixed(1)}g Y:${s.accelY.toFixed(1)}g`,
+      bmp180:  ()=>`${s.temp.toFixed(1)}°C`,
+      bme280:  ()=>`${s.temp.toFixed(1)}°C / ${s.hum.toFixed(0)}%`,
+      rfid:    ()=>s.rfidPresent ? '🔴 Card Tapped' : '⚫ Tap Card',
       ds18b20: ()=>`${s.temp.toFixed(1)}°C`,
-      pot:     ()=>`${Math.floor(Math.random()*1023)} ADC`,
+      pot:     ()=>`${s.val !== undefined ? s.val : 512} ADC`,
+      ir:      ()=>s.irClear ? '⚫ CLEAR' : '🔴 BLOCKED',
     };
     if(display[c.type]) el.textContent=display[c.type]();
   });
-  // Keep ADC channels updated with sensor values
-  updateADCFromSensors();
+  // Digital channels need to be updated for PIR/IR sensors
+  updateDigitalFromSensors();
 }
 
 // ── G: Wire Validation ─────────────────────────────────────────
@@ -2419,12 +2600,129 @@ function startDemo(){
   document.getElementById('run-btn').textContent='⏹ Stop';
   document.getElementById('run-btn').classList.add('running');
   setStatus('run','Demo');
+  slog('sys','▶ Demo simulation — compile server offline');
+  slog('sys','Tip: run  node compile-server.js  for real AVR execution');
+
+  // Extract strings from Serial.println("...") in the editor so the demo output looks realistic
+  const code = getEditorValue();
+  const allPrints = [...code.matchAll(/Serial\.print(?:ln)?\(\s*"([^"]+)"\s*\)/g)].map(m=>m[1]);
+  // Usually the last strings are in the loop()
+  const demoStrings = allPrints.length > 2 ? allPrints.slice(-2) : allPrints;
+
+  // Build a watcher map: pinId → LED compId (for demo LED control)
+  function getDemoLEDMap(){
+    const map = {}; // boardPinId → LED compId
+    wires.forEach(w=>{
+      const ends=[{cid:w.fc,pid:w.fp},{cid:w.tc,pid:w.tp}];
+      let board=null, led=null;
+      ends.forEach(e=>{
+        const c=comps.find(x=>x.id===e.cid);
+        if(!c) return;
+        if(BOARDS.includes(c.type)) board=e;
+        else if(c.type.startsWith('led-')||c.type==='rgb') led={...e,comp:c};
+      });
+      if(board && led && led.pid==='A') map[board.pid]=led.comp.id;
+    });
+    return map;
+  }
+
+  // Get temperature from first wired DHT sensor, or drift randomly
+  function getDemoTemp(){
+    const dht=comps.find(c=>c.type==='dht22'||c.type==='dht11'||c.type==='ds18b20');
+    if(dht){ const s=getSensorVal(dht.type,dht.id); return s.temp; }
+    return 24+Math.sin(Date.now()/4000)*8; // sine wave 16-32°C when no sensor
+  }
+
   let t=0;
   function tick(){
-    if(!running)return; t++;
-    const on=Math.floor(t/5)%2===0;
-    updateAllLEDs(on); setD13Led(on);
-    if(t%10===0){slog('val',`[demo] millis=${t*100} D13=${on?'HIGH':'LOW'}`);tickSensors()}
+    if(!running) return;
+    t++;
+    tickSensors();
+
+    const ledMap = getDemoLEDMap();
+    const hasWiredLEDs = Object.keys(ledMap).length > 0;
+
+    const temp = getDemoTemp();
+    const hot  = temp > 30;
+    const cold = temp < 20;
+    const on = Math.floor(t/5)%2===0;
+
+    const pinState = {};
+    Object.keys(ledMap).forEach(pin=>pinState[pin]=false);
+    if(hot)       { if('D13' in ledMap) pinState['D13']=true; }
+    else if(cold) { if('D11' in ledMap) pinState['D11']=true; }
+    else          { if('D12' in ledMap) pinState['D12']=true; }
+
+    if(!comps.find(c=>c.type==='dht22'||c.type==='dht11'||c.type==='ds18b20')){
+      if('D13' in ledMap) pinState['D13']=on;
+    }
+
+    // Update OLED/LCD visuals in demo mode
+    const dOLED = comps.find(c => c.type === 'oled');
+    if(dOLED){
+      const hasTempSensor = comps.find(c=>c.type==='dht22'||c.type==='dht11'||c.type==='ds18b20');
+      oledBuffers[dOLED.id] = {
+        lines: [
+          { x: 0, y: 0, sz: 1, text: "OLED Demo Mode" },
+          { x: 0, y: 12, sz: 1, text: "Offline Compiler" },
+          { x: 0, y: 24, sz: 1, text: hasTempSensor ? `Temp: ${temp.toFixed(1)} C` : `Blink D13: ${on?'HIGH':'LOW'}` },
+          { x: 0, y: 36, sz: 1, text: "Run node server.js" }
+        ],
+        dirty: true
+      };
+      renderOLED(dOLED.id);
+    }
+    const dLCD = comps.find(c => c.type === 'lcd');
+    if(dLCD){
+      const hasTempSensor = comps.find(c=>c.type==='dht22'||c.type==='dht11'||c.type==='ds18b20');
+      lcdBuffers[dLCD.id] = {
+        rows: [
+          "LCD Demo Mode",
+          hasTempSensor ? `Temp: ${temp.toFixed(1)} C` : `Blink D13: ${on?'HIGH':'LOW'}`
+        ],
+        dirty: true
+      };
+      renderLCD(dLCD.id);
+    }
+
+    if(hasWiredLEDs){
+      // Smart demo: control individual wired LEDs based on pin assignment
+      Object.entries(ledMap).forEach(([pin,cid])=>{
+        const g=document.getElementById('ledg-'+cid);
+        if(!g) return;
+        const c=comps.find(x=>x.id===cid);
+        const color=DEFS[c?.type]?.color||'#fff';
+        const isPinOn=pinState[pin]||false;
+        g.style.background=isPinOn?color:color+'22';
+        g.style.boxShadow=isPinOn?`0 0 18px ${color},0 0 36px ${color}66`:'none';
+      });
+      setD13Led(pinState['D13']||false);
+      if(t%10===0){
+        const hasTempSensor = comps.find(c=>c.type==='dht22'||c.type==='dht11'||c.type==='ds18b20');
+        if (hasTempSensor) {
+          const state=temp>30?'HOT 🔴':temp<20?'COLD 🔵':'OK 🟢';
+          slog('val',`Temp: ${temp.toFixed(1)}°C → ${state}`);
+        } else {
+          if(demoStrings.length > 0) {
+            const str = demoStrings[(Math.floor(t/10) - 1 + demoStrings.length) % demoStrings.length];
+            slog('val', str);
+          } else {
+            slog('val',`[demo] millis=${t*100} D13=${pinState['D13']?'HIGH':'LOW'}`);
+          }
+        }
+      }
+    } else {
+      // No wired LEDs: classic blink D13 only
+      setD13Led(on);
+      if(t%10===0) {
+        if(demoStrings.length > 0) {
+          const str = demoStrings[(Math.floor(t/10) - 1 + demoStrings.length) % demoStrings.length];
+          slog('val', str);
+        } else {
+          slog('val',`[demo] millis=${t*100} D13=${on?'HIGH':'LOW'}`);
+        }
+      }
+    }
     cpuTmr=setTimeout(tick,100);
   }
   tick(); showPane('serial');
@@ -2476,18 +2774,31 @@ function handleSimCmd(cmd){
     case 'OLED_SHOW':
       if(targetOLED) renderOLED(targetOLED);
       break;
+    case 'LCD_INIT':
+      if(targetLCD){ lcdBuffers[targetLCD]={rows:['                ','                ']}; renderLCD(targetLCD); }
+      slog('sys','LCD 0x27 initialized');
+      break;
+    case 'LCD_BL':
+      // Backlight on - visually indicate LCD is on
+      if(targetLCD){
+        const lcdEl = document.getElementById('lcd-'+targetLCD);
+        if(lcdEl) lcdEl.style.background='#003200';
+      }
+      break;
     case 'LCD_CLR':
-      if(targetLCD){lcdBuffers[targetLCD]={rows:['                ','                ']};renderLCD(targetLCD)}
+      if(targetLCD){ lcdBuffers[targetLCD]={rows:['                ','                ']}; renderLCD(targetLCD); }
       break;
     case 'LCD_TXT': {
-      const row=parseInt(parts[1])||0;
-      const col=parseInt(parts[2])||0;
-      const txt=parts.slice(3).join(':');
-      if(targetLCD){
-        if(!lcdBuffers[targetLCD]) lcdBuffers[targetLCD]={rows:['                ','                ']};
-        let r=(lcdBuffers[targetLCD].rows[row]||'                ').split('');
-        for(let i=0;i<txt.length&&col+i<16;i++) r[col+i]=txt[i];
-        lcdBuffers[targetLCD].rows[row]=r.join('');
+      const row = parseInt(parts[1]) || 0;
+      const col = parseInt(parts[2]) || 0;
+      const txt = parts.slice(3).join(':');
+      if(targetLCD) {
+        if(!lcdBuffers[targetLCD]) lcdBuffers[targetLCD] = {rows:['                ','                ']};
+        // Ensure row exists
+        while(lcdBuffers[targetLCD].rows.length <= row) lcdBuffers[targetLCD].rows.push('                ');
+        let r = (lcdBuffers[targetLCD].rows[row] || '                ').split('');
+        for(let i=0; i<txt.length && col+i<16; i++) r[col+i] = txt[i];
+        lcdBuffers[targetLCD].rows[row] = r.join('');
         renderLCD(targetLCD);
       }
       break;
@@ -2510,6 +2821,26 @@ function handleSimCmd(cmd){
       if(comp){const el=document.getElementById('pc-'+comp);if(el)el.style.filter=''}
       break;
     }
+    case 'DHT_READ_T':
+    case 'DHT_READ_H': {
+      // When DHT stub calls sim_cmd("DHT_READ_T"), immediately refresh the GPIOR registers
+      // so the value is ready for the C++ stub to read
+      const dhtComp = comps.find(c => c.type === 'dht22' || c.type === 'dht11');
+      if(dhtComp && cpu) {
+        const sv = getSensorVal(dhtComp.type, dhtComp.id);
+        cpu.data[0x4A] = Math.max(0, Math.min(255, Math.floor(sv.temp + 40)));
+        cpu.data[0x4B] = Math.max(0, Math.min(255, Math.floor(sv.hum)));
+      }
+      break;
+    }
+    case 'DS18B20_READ': {
+      const dsComp = comps.find(c => c.type === 'ds18b20');
+      if(dsComp && cpu) {
+        const sv = getSensorVal(dsComp.type, dsComp.id);
+        cpu.data[0x4A] = Math.max(0, Math.min(255, Math.floor(sv.temp + 40)));
+      }
+      break;
+    }
     default:
       slog('sys','SIM: '+cmd);
   }
@@ -2522,28 +2853,28 @@ function initOLEDBuffer(cid){
 // Render OLED buffer → canvas inside the OLED component
 function renderOLED(cid){
   const buf=oledBuffers[cid]; if(!buf) return;
-  // Find the oled-screen div
-  const screen=document.getElementById('oled-'+cid);
-  if(!screen) return;
 
-  // Use canvas for pixel-accurate rendering
+  // Use high-resolution canvas to prevent pixelation/blurriness when downscaling
   let cvs=document.getElementById('oled-cvs-'+cid);
   if(!cvs){
+    const screen=document.getElementById('oled-'+cid);
+    if(!screen) return;
     cvs=document.createElement('canvas');
     cvs.id='oled-cvs-'+cid;
-    cvs.width=128; cvs.height=64;
-    cvs.style.cssText='width:84px;height:42px;image-rendering:pixelated;border-radius:2px;background:#000018';
+    cvs.width=256; cvs.height=128; // Double resolution (native is 128x64)
+    cvs.style.cssText='width:76px;height:38px;border-radius:2px;background:#000018;box-shadow:inset 0 0 6px rgba(0,0,0,0.8)';
     screen.replaceWith(cvs);
   }
 
   const ctx=cvs.getContext('2d');
-  ctx.fillStyle='#000018'; ctx.fillRect(0,0,128,64);
+  ctx.fillStyle='#000018'; ctx.fillRect(0,0,256,128);
 
   buf.lines.forEach(({x,y,sz,text})=>{
     ctx.fillStyle='#88aaff';
-    ctx.font=`${sz*8}px monospace`;
-    ctx.imageSmoothingEnabled=false;
-    ctx.fillText(text,x,y+(sz*7));
+    // Use bold, modern monospace font with correct offset for high-res canvas
+    ctx.font=`bold ${sz*13}px 'IBM Plex Mono', 'JetBrains Mono', monospace`;
+    ctx.imageSmoothingEnabled=true;
+    ctx.fillText(text, x * 2, (y + (sz*7.5)) * 2);
   });
 
   buf.dirty=false;
@@ -2553,7 +2884,12 @@ function renderLCD(cid){
   const buf=lcdBuffers[cid]; if(!buf) return;
   const screen=document.getElementById('lcd-'+cid);
   if(screen){
-    screen.textContent=buf.rows.join('\n');
+    // Pad each row to exactly 16 chars so display stays stable
+    const rows = buf.rows.map(r => {
+      const padded = (r || '').padEnd(16, ' ');
+      return padded.substring(0, 16);
+    });
+    screen.textContent = rows.join('\n');
   }
 }
 
@@ -2581,6 +2917,52 @@ function findPWMComponent(type){
 
 function findWiredComponent(type){
   return comps.find(c=>c.type===type)?.id;
+}
+function findSensorByPin(boardPinId, types) {
+  const PASSIVES = new Set(['res', 'cap', 'diode']);
+  const adj = {};
+  wires.forEach(w => {
+    const k1 = w.fc + ':' + w.fp;
+    const k2 = w.tc + ':' + w.tp;
+    if(!adj[k1]) adj[k1]=[];
+    if(!adj[k2]) adj[k2]=[];
+    adj[k1].push({cid:w.tc, pid:w.tp});
+    adj[k2].push({cid:w.fc, pid:w.fp});
+  });
+
+  const boardComp = comps.find(c => BOARDS.includes(c.type));
+  if (!boardComp) return null;
+  
+  const pinLabel = boardPinId.startsWith('D') || boardPinId.startsWith('A') ? boardPinId : ('D' + boardPinId);
+  const startNode = boardComp.id + ':' + pinLabel;
+  if (!adj[startNode]) return null;
+
+  const queue = [startNode];
+  const visited = new Set([startNode]);
+  while(queue.length) {
+    const curr = queue.shift();
+    const neighbors = adj[curr] || [];
+    for(const n of neighbors) {
+      const k = n.cid + ':' + n.pid;
+      if(visited.has(k)) continue;
+      visited.add(k);
+      const c = comps.find(x => x.id === n.cid);
+      if(!c) continue;
+      if(PASSIVES.has(c.type)) {
+        const otherPin = c.type === 'res' ? (n.pid === 'P1' ? 'P2' : 'P1')
+                       : c.type === 'diode' ? (n.pid === 'A' ? 'K' : 'A')
+                       : (n.pid === 'P' ? 'N' : 'P');
+        const passNode = n.cid + ':' + otherPin;
+        if(!visited.has(passNode)) {
+          visited.add(passNode);
+          queue.push(passNode);
+        }
+      } else if (types.includes(c.type)) {
+        return c;
+      }
+    }
+  }
+  return null;
 }
 function triggerBtn(compId, pressed){
   // Visual feedback always works
@@ -2711,12 +3093,15 @@ function hideErr(){
 
 // ── Pane switcher ──────────────────────────────────────────────
 function showPane(name){
-  ['code','serial','plot'].forEach(p=>{
-    document.getElementById(p+'-pane').classList.toggle('show',p===name);
-    document.getElementById('tab-'+p).classList.toggle('on',p===name);
+  ['code','serial','plot','guide'].forEach(p=>{
+    const pane = document.getElementById(p+'-pane');
+    const tab = document.getElementById('tab-'+p);
+    if(pane) pane.classList.toggle('show',p===name);
+    if(tab) tab.classList.toggle('on',p===name);
   });
   if(name==='code') document.getElementById('code-pane').classList.remove('hide');
   if(name==='plot') drawPlot();
+  if(name==='guide') updatePinGuide();
 }
 
 // ── Code templates ─────────────────────────────────────────────
@@ -3065,6 +3450,8 @@ function newProject(){
   setEditorValue(TEMPLATES.uno);
   projectName='Untitled Project';
   document.getElementById('proj-name').textContent=projectName;
+  // Clear palette search
+  const ps=document.getElementById('pal-search'); if(ps){ps.value='';filterPalette('');}
 }
 function saveProject(){
   const d=JSON.stringify({comps,wires,code:getEditorValue(),board:document.getElementById('board-sel').value},null,2);
@@ -3152,14 +3539,273 @@ function renameProject(){
   if(n){projectName=n;document.getElementById('proj-name').textContent=n}
 }
 function filterPalette(q){
+  q = q.toLowerCase();
   document.querySelectorAll('.pitem').forEach(el=>{
-    el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+    el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+  // Hide category headers that have no visible items below them
+  document.querySelectorAll('.pcat').forEach(cat=>{
+    let sibling = cat.nextElementSibling;
+    let hasVisible = false;
+    while(sibling && !sibling.classList.contains('pcat')){
+      if(sibling.classList.contains('pitem') && sibling.style.display !== 'none') hasVisible = true;
+      sibling = sibling.nextElementSibling;
+    }
+    cat.style.display = hasVisible ? '' : 'none';
   });
 }
 function updateStatus(){
   document.getElementById('sb-comps').textContent=comps.length;
   document.getElementById('sb-wires').textContent=wires.length;
   document.getElementById('canvas-info').textContent=`${comps.length} component${comps.length!==1?'s':''} · ${wires.length} wire${wires.length!==1?'s':''}`;
+  updatePinGuide();
+}
+
+const PIN_GUIDE_RULES = {
+  'led-r': { A: { rule: 'Digital Out (D2-D13)', type: 'digital' }, K: { rule: 'GND (Ground)', type: 'gnd' } },
+  'led-g': { A: { rule: 'Digital Out (D2-D13)', type: 'digital' }, K: { rule: 'GND (Ground)', type: 'gnd' } },
+  'led-b': { A: { rule: 'Digital Out (D2-D13)', type: 'digital' }, K: { rule: 'GND (Ground)', type: 'gnd' } },
+  'led-y': { A: { rule: 'Digital Out (D2-D13)', type: 'digital' }, K: { rule: 'GND (Ground)', type: 'gnd' } },
+  rgb: {
+    R: { rule: 'PWM/Digital (D3, D5, D6, D9, D10, D11)', type: 'pwm' },
+    G: { rule: 'PWM/Digital (D3, D5, D6, D9, D10, D11)', type: 'pwm' },
+    B: { rule: 'PWM/Digital (D3, D5, D6, D9, D10, D11)', type: 'pwm' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  buzzer: { VCC: { rule: 'Digital Out (D2-D13)', type: 'digital' }, GND: { rule: 'GND (Ground)', type: 'gnd' } },
+  oled: {
+    VCC: { rule: '5V or 3.3V Power', type: 'pwr' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' },
+    SCL: { rule: 'A5 (SCL Clock)', type: 'scl' },
+    SDA: { rule: 'A4 (SDA Data)', type: 'sda' }
+  },
+  lcd: {
+    VSS: { rule: 'GND (Ground)', type: 'gnd' },
+    VDD: { rule: '5V Power', type: 'pwr' },
+    RS: { rule: 'Digital Pin (D2-D13)', type: 'digital' },
+    EN: { rule: 'Digital Pin (D2-D13)', type: 'digital' },
+    D4: { rule: 'Digital Pin (D2-D13)', type: 'digital' },
+    D5: { rule: 'Digital Pin (D2-D13)', type: 'digital' },
+    D6: { rule: 'Digital Pin (D2-D13)', type: 'digital' },
+    D7: { rule: 'Digital Pin (D2-D13)', type: 'digital' }
+  },
+  servo: {
+    GND: { rule: 'GND (Ground)', type: 'gnd' },
+    VCC: { rule: '5V Power', type: 'pwr' },
+    SIG: { rule: 'PWM/Digital (D3, D5, D6, D9, D10, D11)', type: 'pwm' }
+  },
+  btn: {
+    P1: { rule: 'Digital (D2-D13) or GND', type: 'digital_or_gnd' },
+    P2: { rule: 'GND or Digital (D2-D13)', type: 'digital_or_gnd' },
+    P3: { rule: 'Optional', type: 'any' },
+    P4: { rule: 'Optional', type: 'any' }
+  },
+  pot: {
+    VCC: { rule: '5V or 3.3V Power', type: 'pwr' },
+    OUT: { rule: 'Analog Input (A0-A5)', type: 'analog' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  sw: {
+    P1: { rule: 'Digital or GND', type: 'digital_or_gnd' },
+    P2: { rule: 'GND or Digital', type: 'digital_or_gnd' }
+  },
+  dht11: {
+    VCC: { rule: '5V or 3.3V Power', type: 'pwr' },
+    DAT: { rule: 'Digital (D2-D13)', type: 'digital' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  dht22: {
+    VCC: { rule: '5V or 3.3V Power', type: 'pwr' },
+    DAT: { rule: 'Digital (D2-D13)', type: 'digital' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  hcsr04: {
+    VCC: { rule: '5V Power', type: 'pwr' },
+    TRG: { rule: 'Digital (D2-D13)', type: 'digital' },
+    ECH: { rule: 'Digital (D2-D13)', type: 'digital' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  pir: {
+    VCC: { rule: '5V or 3.3V Power', type: 'pwr' },
+    OUT: { rule: 'Digital (D2-D13)', type: 'digital' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  ir: {
+    VCC: { rule: '5V or 3.3V Power', type: 'pwr' },
+    OUT: { rule: 'Digital (D2-D13)', type: 'digital' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  ldr: {
+    P1: { rule: 'Analog (A0-A5)', type: 'analog' },
+    P2: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  mq2: {
+    VCC: { rule: '5V Power', type: 'pwr' },
+    AO: { rule: 'Analog (A0-A5) [Optional]', type: 'analog' },
+    DO: { rule: 'Digital (D2-D13)', type: 'digital' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  soil: {
+    VCC: { rule: '5V or 3.3V Power', type: 'pwr' },
+    AO: { rule: 'Analog (A0-A5) [Optional]', type: 'analog' },
+    DO: { rule: 'Digital (D2-D13)', type: 'digital' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  mpu6050: {
+    VCC: { rule: '3.3V or 5V Power', type: 'pwr' },
+    SDA: { rule: 'A4 (SDA Data)', type: 'sda' },
+    SCL: { rule: 'A5 (SCL Clock)', type: 'scl' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  bmp180: {
+    VCC: { rule: '3.3V or 5V Power', type: 'pwr' },
+    SDA: { rule: 'A4 (SDA Data)', type: 'sda' },
+    SCL: { rule: 'A5 (SCL Clock)', type: 'scl' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  rfid: {
+    VCC: { rule: '3.3V Power', type: 'pwr' },
+    RST: { rule: 'Digital (D2-D13)', type: 'digital' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' },
+    SDA: { rule: 'A4 (SDA Data)', type: 'sda' },
+    SCK: { rule: 'A5 (SCL Clock) or SPI SCK', type: 'spi' }
+  },
+  ds18b20: {
+    GND: { rule: 'GND (Ground)', type: 'gnd' },
+    DAT: { rule: 'Digital (D2-D13)', type: 'digital' },
+    VCC: { rule: '5V or 3.3V Power', type: 'pwr' }
+  },
+  bme280: {
+    VCC: { rule: '3.3V or 5V Power', type: 'pwr' },
+    SDA: { rule: 'A4 (SDA Data)', type: 'sda' },
+    SCL: { rule: 'A5 (SCL Clock)', type: 'scl' },
+    GND: { rule: 'GND (Ground)', type: 'gnd' }
+  },
+  res: {
+    P1: { rule: 'Any node', type: 'any' },
+    P2: { rule: 'Any node', type: 'any' }
+  },
+  cap: {
+    P: { rule: 'Positive node', type: 'any' },
+    N: { rule: 'GND or lower potential node', type: 'any' }
+  },
+  diode: {
+    A: { rule: 'Anode (+)', type: 'any' },
+    K: { rule: 'Cathode (-)', type: 'any' }
+  }
+};
+
+function updatePinGuide() {
+  const container = document.getElementById('guide-list');
+  if (!container) return;
+
+  const validComps = comps.filter(c => c.type !== 'uno');
+  if (validComps.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:24px;color:var(--text3);border:1px dashed var(--line2);border-radius:6px;font-size:12px">
+        No components placed yet.<br>Drag components from the library.
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  validComps.forEach(c => {
+    const def = DEFS[c.type];
+    if (!def) return;
+
+    html += `
+      <div class="guide-item" style="background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line2);padding-bottom:6px">
+          <span style="font-weight:600;font-size:12px;color:var(--text1)">${def.label} <span style="font-size:9px;color:var(--text3);font-weight:400;margin-left:4px">#${c.id.slice(-4)}</span></span>
+          <button onclick="sel('${c.id}')" style="background:var(--bg3);border:1px solid var(--line);color:var(--text2);font-size:9px;padding:2px 6px;border-radius:4px;cursor:pointer">Select</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+    `;
+
+    const pinRules = PIN_GUIDE_RULES[c.type] || {};
+    def.pins.forEach(pin => {
+      let connectedTo = null;
+      let isCorrect = false;
+
+      const wire = wires.find(w => 
+        (w.fc === c.id && w.fp === pin.id) || 
+        (w.tc === c.id && w.tp === pin.id)
+      );
+
+      if (wire) {
+        const otherEnd = (wire.fc === c.id && wire.fp === pin.id) ? 
+          { cid: wire.tc, pid: wire.tp } : 
+          { cid: wire.fc, pid: wire.fp };
+        
+        const otherComp = comps.find(x => x.id === otherEnd.cid);
+        if (otherComp) {
+          const otherDef = DEFS[otherComp.type];
+          const otherLabel = otherDef ? otherDef.label : otherComp.type;
+          connectedTo = `${otherLabel} (${otherEnd.pid})`;
+
+          if (otherComp.type === 'uno') {
+            const rule = pinRules[pin.id];
+            const p = otherEnd.pid;
+            if (rule) {
+              const type = rule.type;
+              if (type === 'gnd') {
+                isCorrect = (p === 'GND' || p === 'GND2');
+              } else if (type === 'pwr') {
+                isCorrect = (p === '5V' || p === '3V3');
+              } else if (type === 'digital') {
+                isCorrect = p.startsWith('D') && p !== 'D0' && p !== 'D1';
+              } else if (type === 'pwm') {
+                isCorrect = ['D3', 'D5', 'D6', 'D9', 'D10', 'D11'].includes(p);
+              } else if (type === 'analog') {
+                isCorrect = p.startsWith('A');
+              } else if (type === 'sda') {
+                isCorrect = (p === 'A4');
+              } else if (type === 'scl') {
+                isCorrect = (p === 'A5');
+              } else if (type === 'digital_or_gnd') {
+                isCorrect = p.startsWith('D') || p === 'GND' || p === 'GND2';
+              } else if (type === 'any') {
+                isCorrect = true;
+              }
+            } else {
+              isCorrect = true;
+            }
+          } else {
+            isCorrect = true;
+          }
+        }
+      }
+
+      const ruleText = pinRules[pin.id]?.rule || 'Any connection';
+      
+      let statusHtml = '';
+      if (!connectedTo) {
+        statusHtml = `<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)">⚪ Disconnected</span>`;
+      } else if (isCorrect) {
+        statusHtml = `<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.2)">🟢 Connected to ${connectedTo}</span>`;
+      } else {
+        statusHtml = `<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.2)">⚠️ Incorrect Connection: ${connectedTo} (Expected ${ruleText})</span>`;
+      }
+
+      html += `
+        <div style="display:flex;flex-direction:column;gap:2px;background:var(--bg3);padding:6px;border-radius:4px;border:1px solid var(--line2)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:monospace;font-size:10px;font-weight:600;color:var(--text1)">Pin: ${pin.id}</span>
+            <span style="font-size:9px;color:var(--text3)">Guide: ${ruleText}</span>
+          </div>
+          <div style="margin-top:2px">${statusHtml}</div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
 }
 
 // ── Keyboard shortcuts ─────────────────────────────────────────
@@ -3169,8 +3815,15 @@ document.addEventListener('keydown',e=>{
   if(active==='TEXTAREA'||active==='INPUT') return;
   const inMonaco = document.getElementById('monaco-container')?.contains(document.activeElement);
   if(inMonaco) return;
-  if(e.key==='Delete'||e.key==='Backspace')deleteSelected();
-  if(e.key==='Escape'){if(wiring){wiring=false;wireFrom=null;document.body.classList.remove('wiring');drawWires()}sel(null)}
+  if(e.key==='Delete'||e.key==='Backspace'){
+    if(wiring && wirePoints.length > 0){
+      wirePoints.pop();
+      drawWires();
+    } else {
+      deleteSelected();
+    }
+  }
+  if(e.key==='Escape'){if(wiring){wiring=false;wireFrom=null;wirePoints=[];document.body.classList.remove('wiring');drawWires()}sel(null)}
   if(e.key==='v'||e.key==='V')setTool('select');
   if(e.key==='w'||e.key==='W')setTool('wire');
   // Ctrl+Enter handled by Monaco command above
@@ -3367,7 +4020,7 @@ require(['vs/editor/editor.main'], () => {
     language: 'arduino',
     theme: 'simulab-dark',
     fontSize: monacoFontSize,
-    fontFamily: "'JetBrains Mono', 'IBM Plex Mono', monospace",
+    fontFamily: "Consolas, Monaco, 'Courier New', monospace",
     fontLigatures: true,
     lineNumbers: 'on',
     minimap: { enabled: true, scale: 1 },
@@ -3418,6 +4071,11 @@ require(['vs/editor/editor.main'], () => {
   document.getElementById('code-editor').value = TEMPLATES.uno;
 
   console.log('Monaco editor ready ✓');
+
+  // Trigger editor layouts to prevent overlapping character misalignment
+  setTimeout(() => { if(monacoEditor) monacoEditor.layout(); }, 100);
+  setTimeout(() => { if(monacoEditor) monacoEditor.layout(); }, 500);
+  setTimeout(() => { if(monacoEditor) monacoEditor.layout(); }, 2000);
 });
 
 // Monaco helper functions
@@ -3474,5 +4132,276 @@ setTimeout(()=>{
   slog('sys','Ctrl+Enter to compile & run');
 },200);
 </script>
+
+<!-- ── GPIO Debug Overlay ── -->
+<style>
+#gpio-debug {
+  display:none; position:fixed; bottom:40px; left:50%; transform:translateX(-50%);
+  background:#0d1117; border:1px solid #58a6ff; border-radius:10px;
+  padding:14px 18px; z-index:9999; min-width:520px; max-width:90vw;
+  font-family:monospace; font-size:12px; color:#e6edf3;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+}
+#gpio-debug.show { display:block; }
+#gpio-debug h4 { color:#58a6ff; margin-bottom:10px; font-size:13px; }
+#gpio-debug table { width:100%; border-collapse:collapse; }
+#gpio-debug th { color:#8b949e; font-size:10px; text-transform:uppercase; padding:3px 8px; border-bottom:1px solid #30363d; text-align:left; }
+#gpio-debug td { padding:4px 8px; border-bottom:1px solid #1e252d; }
+#gpio-debug .hi  { color:#3fb950; font-weight:bold; }
+#gpio-debug .lo  { color:#8b949e; }
+#gpio-debug .err { color:#f85149; }
+#gpio-debug .close-btn { position:absolute; top:10px; right:12px; cursor:pointer; color:#8b949e; font-size:16px; }
+#gpio-debug-toggle {
+  position:fixed; bottom:8px; right:8px; z-index:9998;
+  background:#1a2a3a; border:1px solid #58a6ff; color:#58a6ff;
+  padding:4px 10px; border-radius:5px; font-size:11px; cursor:pointer;
+  font-family:monospace;
+}
+</style>
+
+<div id="gpio-debug">
+  <span class="close-btn" onclick="document.getElementById('gpio-debug').classList.remove('show')">✕</span>
+  <h4>⚡ GPIO Watcher Debug</h4>
+  <div id="gpio-debug-body"></div>
+</div>
+<button id="gpio-debug-toggle" onclick="showGpioDebug()">🔍 GPIO Debug</button>
+
+<script>
+function showGpioDebug() {
+  const panel = document.getElementById('gpio-debug');
+  const body  = document.getElementById('gpio-debug-body');
+  panel.classList.add('show');
+
+  // Dump all wires with full passive BFS tracing
+  const PASSIVES = new Set(['res','cap','diode']);
+  const adj = {};
+  const add = (k, v) => { if(!adj[k]) adj[k]=[]; adj[k].push(v); };
+  wires.forEach(w => {
+    add(w.fc+':'+w.fp, {cid:w.tc, pid:w.tp});
+    add(w.tc+':'+w.tp, {cid:w.fc, pid:w.fp});
+  });
+
+  function traceToBoardPin(startCid, startPinId) {
+    const queue = [{cid:startCid, pid:startPinId}];
+    const visited = new Set([startCid+':'+startPinId]);
+    while(queue.length) {
+      const {cid, pid} = queue.shift();
+      const c = comps.find(x => x.id===cid);
+      if(c && BOARDS.includes(c.type)) return {cid, pid};
+      const neighbors = adj[cid+':'+pid] || [];
+      for(const n of neighbors) {
+        const key = n.cid+':'+n.pid;
+        if(visited.has(key)) continue;
+        visited.add(key);
+        const nc = comps.find(x => x.id===n.cid);
+        if(!nc) continue;
+        if(BOARDS.includes(nc.type)) return {cid:n.cid, pid:n.pid};
+        if(PASSIVES.has(nc.type)) {
+          const def = DEFS[nc.type];
+          if(def && def.pins) {
+            def.pins.forEach(p => {
+              const k2 = n.cid+':'+p.id;
+              if(!visited.has(k2)) queue.push({cid:n.cid, pid:p.id});
+            });
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  const wireRows = wires.map(w => {
+    const fc = comps.find(c => c.id === w.fc);
+    const tc = comps.find(c => c.id === w.tc);
+    const fcType = fc?.type || '?';
+    const tcType = tc?.type || '?';
+    
+    // Trace both ends of the wire to see if it reaches a board pin
+    const boardEnd1 = traceToBoardPin(w.fc, w.fp);
+    const boardEnd2 = traceToBoardPin(w.tc, w.tp);
+    const boardEnd = boardEnd1 || boardEnd2;
+    const brdPid = boardEnd ? boardEnd.pid : '—';
+
+    const pinNum  = PIN_LABEL_NUM[brdPid];
+    const pinMap  = pinNum !== undefined ? PIN_MAP[pinNum] : null;
+    const isPowerOrGnd = brdPid === 'GND' || brdPid === 'GND2' || brdPid === '5V' || brdPid === '3.3V' || brdPid === '3V3' || brdPid === 'VCC';
+    const ok = boardEnd && (pinMap || isPowerOrGnd);
+
+    return `<tr>
+      <td>${w.fc.slice(-4)}:${w.fp} → ${w.tc.slice(-4)}:${w.tp}</td>
+      <td>${fcType} / ${tcType}</td>
+      <td class="${boardEnd?'hi':'err'}">${boardEnd ? brdPid : '✗ no board end'}</td>
+      <td class="${pinNum!==undefined?'hi':'err'}">${pinNum !== undefined ? pinNum : (isPowerOrGnd ? 'PWR/GND' : '✗ not in PIN_LABEL_NUM')}</td>
+      <td class="${pinMap?'hi':'err'}">${pinMap ? pinMap.p+pinMap.b : (isPowerOrGnd ? 'Power' : '✗ not in PIN_MAP')}</td>
+      <td class="${ok?'hi':'err'}">${ok ? '✅' : '❌ watcher missing'}</td>
+    </tr>`;
+  }).join('');
+
+  // Dump active watchers
+  const watchers = buildWatchers();
+  const watcherRows = watchers.length
+    ? watchers.map(w => `<tr>
+        <td class="hi">${w.boardPin}</td>
+        <td class="hi">Port${w.port} bit${w.bit}</td>
+        <td>${w.compType}</td>
+        <td>${w.compId.slice(-4)}:${w.pinId}</td>
+        <td id="wstate-${w.compId}-${w.pinId}" class="lo">LOW</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="err">No watchers built — check wire connections</td></tr>';
+
+  // Check ledg elements
+  const ledChecks = comps.filter(c => c.type.startsWith('led-') || c.type === 'rgb').map(c => {
+    const el = document.getElementById('ledg-' + c.id);
+    return `<tr>
+      <td>${c.type}</td>
+      <td>${c.id.slice(-6)}</td>
+      <td class="${el ? 'hi' : 'err'}">${el ? '✅ found' : '❌ ledg-'+c.id+' NOT in DOM'}</td>
+      <td>${el ? (el.tagName + ' opacity:' + (el.style.opacity||'—')) : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  body.innerHTML = `
+    <b style="color:#8b949e">Wires (${wires.length}):</b>
+    <table style="margin-bottom:12px">
+      <tr><th>Wire</th><th>Types</th><th>Board pin</th><th>Pin#</th><th>Port/Bit</th><th>OK?</th></tr>
+      ${wireRows || '<tr><td colspan="6" class="err">No wires</td></tr>'}
+    </table>
+    <b style="color:#8b949e">Watchers (${watchers.length}):</b>
+    <table style="margin-bottom:12px">
+      <tr><th>Arduino pin</th><th>Port/Bit</th><th>Comp type</th><th>Comp:pin</th><th>State</th></tr>
+      ${watcherRows}
+    </table>
+    <b style="color:#8b949e">LED DOM elements:</b>
+    <table>
+      <tr><th>Type</th><th>ID</th><th>ledg element</th><th>Style</th></tr>
+      ${ledChecks || '<tr><td colspan="4" class="err">No LEDs on canvas</td></tr>'}
+    </table>
+    <div style="margin-top:10px;color:#8b949e;font-size:11px">
+      PIN_LABEL_NUM keys: ${Object.keys(PIN_LABEL_NUM).join(', ')}
+    </div>
+  `;
+
+  // Live-update watcher states while running
+  if(typeof watchers !== 'undefined') {
+    window._debugWatchers = watchers;
+  }
+}
+
+// Hook into applyGPIO to update debug states
+const _origApplyGPIO = applyGPIO;
+applyGPIO = function(w, high, pwm8bit) {
+  _origApplyGPIO(w, high, pwm8bit);
+  // Update debug panel if open
+  const el = document.getElementById('wstate-' + w.compId + '-' + w.pinId);
+  if(el) {
+    el.textContent = high ? (pwm8bit !== undefined ? 'PWM:'+pwm8bit : 'HIGH') : 'LOW';
+    el.className   = high ? 'hi' : 'lo';
+  }
+};
+</script>
+
 </body>
 </html>
+
+<!-- ── SimuLab Auth + Submit Modal ── -->
+<style>
+.sl-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:900;align-items:center;justify-content:center;}
+.sl-overlay.open{display:flex;}
+.sl-modal{background:var(--bg2);border:1px solid var(--line2);border-radius:12px;padding:28px;width:90%;max-width:460px;}
+.sl-modal h3{font-size:15px;font-weight:600;margin-bottom:18px;}
+.sl-field{margin-bottom:12px;}
+.sl-field label{display:block;font-size:11px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.sl-field input,.sl-field select,.sl-field textarea{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--line2);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;}
+.sl-field input:focus,.sl-field select:focus,.sl-field textarea:focus{border-color:var(--purple3);}
+.sl-field textarea{resize:none;height:68px;}
+.sl-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.sl-status{font-size:12px;color:var(--green);margin-top:8px;min-height:16px;}
+</style>
+
+<div class="sl-overlay" id="sl-submit-overlay" onclick="document.getElementById('sl-submit-overlay').classList.remove('open')">
+  <div class="sl-modal" onclick="event.stopPropagation()">
+    <h3>📤 Submit Assignment</h3>
+    <div class="sl-field">
+      <label>Assignment</label>
+      <select id="sl-assignment"></select>
+    </div>
+    <div class="sl-field">
+      <label>Notes (optional)</label>
+      <textarea id="sl-notes" placeholder="Any notes for your teacher…"></textarea>
+    </div>
+    <div id="sl-status" class="sl-status"></div>
+    <div class="sl-actions">
+      <button class="btn btn-plain" onclick="document.getElementById('sl-submit-overlay').classList.remove('open')">Cancel</button>
+      <button class="btn btn-run" onclick="doSubmit()">✅ Submit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auth bootstrap ─────────────────────────────────────────────
+(async () => {
+  try {
+    const me = await fetch('/api/me').then(r => r.ok ? r.json() : null);
+    if (!me) { location.href = '/login'; return; }
+    window._simulabUser = me;
+    if (me.role === 'teacher') document.getElementById('teacher-btn').style.display = '';
+  } catch(e) { location.href = '/login'; }
+})();
+
+async function doLogout() {
+  await fetch('/api/logout', { method:'POST' });
+  location.href = '/login?logout=1';
+}
+
+// ── Submit modal ───────────────────────────────────────────────
+let _assignments = [];
+
+async function openSubmitModal() {
+  document.getElementById('sl-status').textContent = '';
+  document.getElementById('sl-notes').value = '';
+
+  // Load assignments
+  _assignments = await fetch('/api/assignments').then(r => r.json()).catch(() => []);
+  const sel = document.getElementById('sl-assignment');
+  sel.innerHTML = _assignments.length
+    ? _assignments.map(a => `<option value="${a.id}">${a.title}${a.submitted?' ✓':''}</option>`).join('')
+    : '<option value="">No assignments available</option>';
+
+  document.getElementById('sl-submit-overlay').classList.add('open');
+}
+
+async function doSubmit() {
+  const assignmentId = document.getElementById('sl-assignment').value;
+  const notes        = document.getElementById('sl-notes').value.trim();
+  if (!assignmentId) return;
+
+  // Collect circuit state from the existing App
+  let circuit = { components:[], wires:[], code:'' };
+  try {
+    const editor = document.getElementById('code-editor');
+    circuit.code = editor ? (editor.value || editor.innerText || '') : '';
+    circuit.components = (typeof comps !== 'undefined' ? comps : []).map(c => ({
+        id:c.id, type:c.type, props:c.props||{}, x:Math.round(c.x)||0, y:Math.round(c.y)||0
+      }));
+    circuit.wires = (typeof wires !== 'undefined' ? wires : []).map(w => ({
+        id:w.id, from:{compId:w.fc,pinId:w.fp}, to:{compId:w.tc,pinId:w.tp}
+      }));
+  } catch(e) {}
+
+  const res = await fetch('/api/submit', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ assignmentId, notes, circuit }),
+  });
+
+  const data = await res.json();
+  if (res.ok) {
+    document.getElementById('sl-status').textContent = '✅ Submitted successfully!';
+    setTimeout(() => document.getElementById('sl-submit-overlay').classList.remove('open'), 1800);
+  } else {
+    document.getElementById('sl-status').textContent = '❌ ' + (data.error || 'Submit failed');
+    document.getElementById('sl-status').style.color = 'var(--red)';
+  }
+}
+</script>
+

@@ -45,16 +45,6 @@ fadeEls.forEach(el => {
 });
 
 // When element enters view, animate it
-const styleObs = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
-    }
-  });
-}, { threshold: 0.1 });
-
-fadeEls.forEach(el => styleObs.observe(el));
 
 // ── Simulated sensor data updates ─────────────────────────────
 function randomInRange(min, max) {

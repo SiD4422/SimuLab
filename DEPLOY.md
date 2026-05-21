@@ -32,7 +32,7 @@ git push -u origin main
 2. Click "New Project"
 3. Click "Deploy from GitHub repo"
 4. Select your `simulab` repo
-5. Railway auto-detects the Dockerfile ✓
+5. Railway auto-detects the Dockerfile ✓ (Note: It is crucial that `avr-gcc` is installed via the Dockerfile for the compilation API to work)
 6. Click Deploy
 
 Wait 3-5 minutes for build (installs avr-gcc inside Docker).

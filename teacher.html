@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SimuLab — Teacher Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#0c0c10; --bg2:#111116; --bg3:#18181f; --bg4:#1e1e28;
+  --line:rgba(255,255,255,0.07); --line2:rgba(255,255,255,0.14);
+  --purple:#8b5cf6; --purple2:#7c3aed; --purple3:#a78bfa;
+  --green:#34d399; --red:#f87171; --yellow:#fbbf24;
+  --text:#f1f0f5; --text2:#a09db8; --text3:#5a5775;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100%;}
+::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* NAV */
+nav {
+  height:52px; background:var(--bg2); border-bottom:1px solid var(--line);
+  display:flex; align-items:center; padding:0 24px; gap:16px; position:sticky; top:0; z-index:10;
+}
+.nav-logo { font-family:var(--mono); font-size:15px; font-weight:700; color:var(--text); text-decoration:none; }
+.nav-logo em { color:var(--purple3); font-style:normal; }
+.nav-tag { font-size:11px; padding:2px 8px; border-radius:10px; background:rgba(251,191,36,.12); color:var(--yellow); border:1px solid rgba(251,191,36,.25); }
+.nav-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+.nav-user { font-size:13px; color:var(--text2); }
+.btn-sm {
+  padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600;
+  cursor:pointer; border:1px solid var(--line2); background:var(--bg3); color:var(--text2);
+  transition:.15s; font-family:var(--sans);
+}
+.btn-sm:hover { border-color:var(--line2); color:var(--text); background:var(--bg4); }
+.btn-sm.primary { background:rgba(139,92,246,.15); border-color:var(--purple3); color:var(--purple3); }
+.btn-sm.danger  { background:rgba(248,113,113,.1);  border-color:rgba(248,113,113,.4); color:var(--red); }
+.btn-sm.success { background:rgba(52,211,153,.1);   border-color:rgba(52,211,153,.4);  color:var(--green); }
+
+/* LAYOUT */
+.page { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 52px); }
+
+/* SIDEBAR */
+.sidebar {
+  background:var(--bg2); border-right:1px solid var(--line);
+  padding:16px 0; position:sticky; top:52px; height:calc(100vh - 52px); overflow-y:auto;
+}
+.sidebar-section { padding:8px 16px 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text3); }
+.sidebar-item {
+  display:flex; align-items:center; gap:10px; padding:8px 20px;
+  color:var(--text2); font-size:13px; cursor:pointer; border-left:2px solid transparent;
+  transition:.12s;
+}
+.sidebar-item:hover { color:var(--text); background:rgba(255,255,255,.03); }
+.sidebar-item.active { color:var(--purple3); border-left-color:var(--purple3); background:rgba(139,92,246,.06); }
+.sidebar-icon { width:16px; text-align:center; }
+
+/* MAIN */
+.main { padding:28px 32px; overflow-y:auto; }
+.page-title { font-size:20px; font-weight:600; margin-bottom:4px; }
+.page-sub   { font-size:13px; color:var(--text2); margin-bottom:24px; }
+
+/* STAT CARDS */
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+.stat-card {
+  background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:18px 20px;
+}
+.stat-val  { font-size:28px; font-weight:700; font-family:var(--mono); color:var(--text); }
+.stat-label{ font-size:12px; color:var(--text2); margin-top:4px; }
+
+/* SECTION */
+.section { background:var(--bg2); border:1px solid var(--line); border-radius:10px; margin-bottom:20px; }
+.section-head {
+  padding:14px 20px; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.section-title { font-size:14px; font-weight:600; }
+.section-body  { padding:16px 20px; }
+
+/* TABLE */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:8px 12px; color:var(--text3); font-size:11px; text-transform:uppercase; letter-spacing:.8px; border-bottom:1px solid var(--line); font-weight:500; }
+td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,.02); }
+
+.badge {
+  display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500;
+}
+.badge.pending  { background:rgba(251,191,36,.1);  color:var(--yellow); border:1px solid rgba(251,191,36,.2); }
+.badge.complete { background:rgba(52,211,153,.1);  color:var(--green);  border:1px solid rgba(52,211,153,.2); }
+.badge.teacher  { background:rgba(139,92,246,.12); color:var(--purple3);border:1px solid rgba(139,92,246,.25); }
+.badge.student  { background:rgba(255,255,255,.05);color:var(--text2);  border:1px solid var(--line); }
+
+/* MODAL */
+.modal-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
+  z-index:100; align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--bg2); border:1px solid var(--line2); border-radius:12px;
+  padding:28px; width:90%; max-width:480px; max-height:85vh; overflow-y:auto;
+}
+.modal h3 { font-size:16px; font-weight:600; margin-bottom:18px; }
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:11px; color:var(--text2); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
+.field input, .field textarea, .field select {
+  width:100%; padding:9px 12px; background:var(--bg3); border:1px solid var(--line2);
+  border-radius:6px; color:var(--text); font-family:var(--mono); font-size:13px; outline:none;
+  transition:border-color .15s;
+}
+.field input:focus,.field textarea:focus,.field select:focus { border-color:var(--purple3); }
+.field textarea { resize:vertical; min-height:80px; }
+.modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+
+/* View submission modal */
+#view-code { background:var(--bg); padding:12px; border-radius:6px; font-size:12px; font-family:var(--mono); color:var(--green); overflow-x:auto; white-space:pre; max-height:240px; overflow-y:auto; }
+
+.tab-row { display:flex; gap:0; border-bottom:1px solid var(--line); margin-bottom:16px; }
+.tab { padding:8px 16px; font-size:13px; color:var(--text3); cursor:pointer; border-bottom:2px solid transparent; transition:.12s; }
+.tab.active { color:var(--purple3); border-bottom-color:var(--purple3); }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+
+/* Hidden section panes */
+.view { display:none; }
+.view.active { display:block; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Simu<em>Lab</em></a>
+  <span class="nav-tag">👩‍🏫 Teacher</span>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-user"></span>
+    <a href="/simulator" class="btn-sm primary">Open Simulator</a>
+    <button class="btn-sm danger" onclick="logout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="page">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">Overview</div>
+    <div class="sidebar-item active" onclick="showView('dashboard')" id="nav-dashboard">
+      <span class="sidebar-icon">📊</span> Dashboard
+    </div>
+    <div class="sidebar-section">Manage</div>
+    <div class="sidebar-item" onclick="showView('assignments')" id="nav-assignments">
+      <span class="sidebar-icon">📋</span> Assignments
+    </div>
+    <div class="sidebar-item" onclick="showView('submissions')" id="nav-submissions">
+      <span class="sidebar-icon">📤</span> Submissions
+    </div>
+    <div class="sidebar-item" onclick="showView('students')" id="nav-students">
+      <span class="sidebar-icon">👥</span> Students
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Overview of SimuLab activity</div>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-students">—</div>
+          <div class="stat-label">Students</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-assignments">—</div>
+          <div class="stat-label">Assignments</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-submissions">—</div>
+          <div class="stat-label">Submissions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-complete">—</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <span class="section-title">Recent Submissions</span>
+          <button class="btn-sm" onclick="showView('submissions')">View all</button>
+        </div>
+        <div class="section-body">
+          <table>
+            <thead><tr><th>Student</th><th>Assignment</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+            <tbody id="recent-subs"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ASSIGNMENTS ── -->
+    <div class="view" id="view-assignments">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <div class="page-title">Assignments</div>
+          <div class="page-sub">Create and manage lab tasks</div>
+        </div>
+        <button class="btn-sm primary" onclick="openCreateAssignment()">+ New Assignment</button>
+      </div>
+      <div class="section">
+        <div class="section-body">
+          <table>
+            <thead><tr><th>Title</th><th>Created</th><th>Submissions</th><th></th></tr></thead>
+            <tbody id="assignments-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUBMISSIONS ── -->
+    <div class="view" id="view-submissions">
+      <div class="page-title">Submissions</div>
+      <div class="page-sub">Review and grade student work</div>
+      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;" id="assignment-filter-row"></div>
+      <div class="section">
+        <div class="section-body">
+          <table>
+            <thead><tr><th>Student</th><th>Assignment</th><th>Submitted</th><th>Status</th><th></th></tr></thead>
+            <tbody id="submissions-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STUDENTS ── -->
+    <div class="view" id="view-students">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <div class="page-title">Students</div>
+          <div class="page-sub">Manage user accounts</div>
+        </div>
+        <button class="btn-sm primary" onclick="openCreateUser()">+ Add Student</button>
+      </div>
+      <div class="section">
+        <div class="section-body">
+          <table>
+            <thead><tr><th>Name</th><th>Username</th><th>Role</th><th></th></tr></thead>
+            <tbody id="students-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /page -->
+
+<!-- ── CREATE ASSIGNMENT MODAL ── -->
+<div class="modal-overlay" id="modal-assignment">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>New Assignment</h3>
+    <div class="field"><label>Title</label><input id="a-title" placeholder="LAB01 — Blink LED"/></div>
+    <div class="field"><label>Description</label><textarea id="a-desc" placeholder="Instructions for students..."></textarea></div>
+    <div class="field"><label>Due Date (optional)</label><input id="a-due" type="date"/></div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-assignment')">Cancel</button>
+      <button class="btn-sm primary" onclick="submitAssignment()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CREATE USER MODAL ── -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>Add Student Account</h3>
+    <div class="field"><label>Full Name</label><input id="u-name" placeholder="Jane Smith"/></div>
+    <div class="field"><label>Username</label><input id="u-username" placeholder="janesmith"/></div>
+    <div class="field"><label>Password</label><input id="u-password" type="password" placeholder="min 6 chars"/></div>
+    <div class="field">
+      <label>Role</label>
+      <select id="u-role"><option value="student">Student</option><option value="teacher">Teacher</option></select>
+    </div>
+    <div id="u-error" style="color:var(--red);font-size:12px;margin-top:8px;"></div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-user')">Cancel</button>
+      <button class="btn-sm primary" onclick="submitUser()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIEW SUBMISSION MODAL ── -->
+<div class="modal-overlay" id="modal-view-sub">
+  <div class="modal" style="max-width:640px;" onclick="event.stopPropagation()">
+    <h3 id="view-sub-title">Submission</h3>
+    <div class="tab-row">
+      <div class="tab active" onclick="subTab('code')">Code</div>
+      <div class="tab" onclick="subTab('circuit')">Circuit JSON</div>
+    </div>
+    <div class="tab-pane active" id="sub-tab-code">
+      <pre id="view-code"></pre>
+    </div>
+    <div class="tab-pane" id="sub-tab-circuit">
+      <pre id="view-circuit" style="background:var(--bg);padding:12px;border-radius:6px;font-size:11px;font-family:var(--mono);overflow:auto;max-height:300px;white-space:pre;"></pre>
+    </div>
+    <div id="view-sub-notes" style="margin-top:12px;font-size:12px;color:var(--text2);font-style:italic;"></div>
+    <div class="modal-actions">
+      <button class="btn-sm" onclick="closeModal('modal-view-sub')">Close</button>
+      <button class="btn-sm success" id="mark-btn" onclick="markCurrentComplete()">✓ Mark Complete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+let allSubmissions = [], allAssignments = [], allUsers = [];
+let currentSubId = null;
+let activeFilter = null;
+
+// ── Boot ───────────────────────────────────────────────────────
+async function boot() {
+  const me = await api('/api/me');
+  document.getElementById('nav-user').textContent = me.name + ' (' + me.role + ')';
+  await loadAll();
+}
+
+async function loadAll() {
+  [allSubmissions, allAssignments, allUsers] = await Promise.all([
+    api('/api/teacher/submissions'),
+    api('/api/assignments'),
+    api('/api/teacher/users'),
+  ]);
+  renderStats();
+  renderRecentSubs();
+  renderAssignments();
+  renderSubmissions();
+  renderStudents();
+  renderFilterRow();
+}
+
+// ── API helper ─────────────────────────────────────────────────
+async function api(url, opts={}) {
+  const res = await fetch(url, { headers:{'Content-Type':'application/json'}, ...opts });
+  if (res.status === 401) { location.href='/login'; return {}; }
+  return res.json();
+}
+
+// ── Nav ────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+// ── Stats ──────────────────────────────────────────────────────
+function renderStats() {
+  const students = allUsers.filter(u => u.role === 'student').length;
+  const complete = allSubmissions.filter(s => s.status === 'complete').length;
+  document.getElementById('stat-students').textContent    = students;
+  document.getElementById('stat-assignments').textContent = allAssignments.length;
+  document.getElementById('stat-submissions').textContent = allSubmissions.length;
+  document.getElementById('stat-complete').textContent    = complete;
+}
+
+// ── Recent Subs ────────────────────────────────────────────────
+function renderRecentSubs() {
+  const tbody = document.getElementById('recent-subs');
+  const recent = [...allSubmissions].sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt)).slice(0,5);
+  tbody.innerHTML = recent.map(s => subRow(s)).join('') || '<tr><td colspan="5" style="color:var(--text3);padding:20px;text-align:center">No submissions yet</td></tr>';
+}
+
+// ── Assignments ────────────────────────────────────────────────
+function renderAssignments() {
+  const tbody = document.getElementById('assignments-table');
+  tbody.innerHTML = allAssignments.map(a => {
+    const count = allSubmissions.filter(s => s.assignmentId === a.id).length;
+    return `<tr>
+      <td><div style="font-weight:500">${esc(a.title)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${esc(a.description?.slice(0,60))}…</div></td>
+      <td style="color:var(--text2);font-size:12px">${new Date(a.createdAt).toLocaleDateString()}</td>
+      <td style="font-family:var(--mono)">${count}</td>
+      <td><button class="btn-sm danger" onclick="deleteAssignment('${a.id}')">Delete</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4" style="color:var(--text3);padding:20px;text-align:center">No assignments yet</td></tr>';
+}
+
+// ── Filter row ─────────────────────────────────────────────────
+function renderFilterRow() {
+  const row = document.getElementById('assignment-filter-row');
+  row.innerHTML = `<button class="btn-sm ${!activeFilter?'primary':''}" onclick="setFilter(null)">All</button>` +
+    allAssignments.map(a => `<button class="btn-sm ${activeFilter===a.id?'primary':''}" onclick="setFilter('${a.id}')">${esc(a.title)}</button>`).join('');
+}
+function setFilter(id) { activeFilter = id; renderSubmissions(); renderFilterRow(); }
+
+// ── Submissions ────────────────────────────────────────────────
+function renderSubmissions() {
+  const tbody = document.getElementById('submissions-table');
+  let subs = [...allSubmissions].sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+  if (activeFilter) subs = subs.filter(s => s.assignmentId === activeFilter);
+  tbody.innerHTML = subs.map(s => subRow(s)).join('') ||
+    '<tr><td colspan="5" style="color:var(--text3);padding:20px;text-align:center">No submissions</td></tr>';
+}
+
+function subRow(s) {
+  const aName = allAssignments.find(a => a.id === s.assignmentId)?.title || s.assignmentId;
+  const badge = s.status === 'complete'
+    ? '<span class="badge complete">✓ Complete</span>'
+    : '<span class="badge pending">⏳ Pending</span>';
+  return `<tr>
+    <td style="font-weight:500">${esc(s.studentName)}</td>
+    <td style="font-size:12px;color:var(--text2)">${esc(aName)}</td>
+    <td style="font-size:12px;color:var(--text3)">${new Date(s.submittedAt).toLocaleString()}</td>
+    <td>${badge}</td>
+    <td style="display:flex;gap:6px;">
+      <button class="btn-sm" onclick="viewSub('${s.id}')">View</button>
+      ${s.status!=='complete'?`<button class="btn-sm success" onclick="markComplete('${s.id}')">✓</button>`:''}
+    </td>
+  </tr>`;
+}
+
+// ── Students ───────────────────────────────────────────────────
+function renderStudents() {
+  const tbody = document.getElementById('students-table');
+  tbody.innerHTML = allUsers.map(u => `<tr>
+    <td style="font-weight:500">${esc(u.name)}</td>
+    <td style="font-family:var(--mono);font-size:12px;color:var(--text2)">${esc(u.username)}</td>
+    <td><span class="badge ${u.role}">${u.role}</span></td>
+    <td><button class="btn-sm danger" onclick="deleteUser('${u.id}')">Delete</button></td>
+  </tr>`).join('');
+}
+
+// ── Actions ────────────────────────────────────────────────────
+function openCreateAssignment() {
+  document.getElementById('a-title').value = '';
+  document.getElementById('a-desc').value  = '';
+  document.getElementById('a-due').value   = '';
+  document.getElementById('modal-assignment').classList.add('open');
+}
+async function submitAssignment() {
+  const title = document.getElementById('a-title').value.trim();
+  const desc  = document.getElementById('a-desc').value.trim();
+  const due   = document.getElementById('a-due').value || null;
+  if (!title) return;
+  await api('/api/teacher/assignments', { method:'POST', body: JSON.stringify({title,description:desc,dueDate:due}) });
+  closeModal('modal-assignment');
+  await loadAll();
+}
+async function deleteAssignment(id) {
+  if (!confirm('Delete this assignment?')) return;
+  await api('/api/teacher/assignments/' + id, { method:'DELETE' });
+  await loadAll();
+}
+
+function openCreateUser() {
+  ['u-name','u-username','u-password'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('u-error').textContent = '';
+  document.getElementById('modal-user').classList.add('open');
+}
+async function submitUser() {
+  const name     = document.getElementById('u-name').value.trim();
+  const username = document.getElementById('u-username').value.trim();
+  const password = document.getElementById('u-password').value;
+  const role     = document.getElementById('u-role').value;
+  if (!name || !username || password.length < 6) {
+    document.getElementById('u-error').textContent = 'All fields required, password min 6 chars.';
+    return;
+  }
+  const res = await api('/api/teacher/users', { method:'POST', body: JSON.stringify({name,username,password,role}) });
+  if (res.error) { document.getElementById('u-error').textContent = res.error; return; }
+  closeModal('modal-user');
+  await loadAll();
+}
+async function deleteUser(id) {
+  if (!confirm('Delete this user?')) return;
+  await api('/api/teacher/users/' + id, { method:'DELETE' });
+  await loadAll();
+}
+
+function viewSub(id) {
+  const s = allSubmissions.find(x => x.id === id);
+  if (!s) return;
+  currentSubId = id;
+  const aName = allAssignments.find(a => a.id === s.assignmentId)?.title || s.assignmentId;
+  document.getElementById('view-sub-title').textContent = s.studentName + ' — ' + aName;
+  document.getElementById('view-code').textContent = s.circuit?.code || '// No code submitted';
+  document.getElementById('view-circuit').textContent = JSON.stringify({
+    components: s.circuit?.components || [],
+    wires: s.circuit?.wires || [],
+  }, null, 2);
+  document.getElementById('view-sub-notes').textContent = s.notes ? 'Note: ' + s.notes : '';
+  document.getElementById('mark-btn').style.display = s.status === 'complete' ? 'none' : '';
+  subTab('code');
+  document.getElementById('modal-view-sub').classList.add('open');
+}
+
+async function markCurrentComplete() {
+  if (!currentSubId) return;
+  await markComplete(currentSubId);
+  closeModal('modal-view-sub');
+}
+async function markComplete(id) {
+  await api('/api/teacher/submissions/' + id + '/complete', { method:'POST' });
+  await loadAll();
+}
+
+async function deleteUser(id) {
+  if (!confirm('Delete this user?')) return;
+  await api('/api/teacher/users/' + id, { method:'DELETE' });
+  await loadAll();
+}
+
+function subTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sub-tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function logout() {
+  await fetch('/api/logout', { method:'POST' });
+  location.href = '/login?logout=1';
+}
+
+boot();
+</script>
+</body>
+</html>

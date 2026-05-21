@@ -28,7 +28,7 @@ import {
 import { loadHex } from "https://esm.sh/avr8js@latest/util/load-hex";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const COMPILE_URL = "http://localhost:3001/compile";
+const COMPILE_URL = window.location.origin + "/compile";
 const CLOCK_HZ = 16_000_000; // ATmega328P @ 16 MHz
 const CYCLES_PER_FRAME = Math.floor(CLOCK_HZ / 60); // ~266k cycles @ 60fps
 
