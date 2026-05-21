@@ -49,10 +49,7 @@ app.get('/login',  (_, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.sendFile(path.join(ROOT, 'login.html'));
 });
-app.get('/',       (_, res) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-  res.sendFile(path.join(ROOT, 'index_landing.html'));
-});
+app.get('/',       (_, res) => res.redirect('/simulator'));
 
 // ── Auth API ───────────────────────────────────────────────────
 app.post('/api/login', async (req, res) => {
