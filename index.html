@@ -672,6 +672,13 @@ body.light-mode #topbar {
       <div class="pitem" draggable="true" data-type="breadboard" ondragstart="ds(event,'breadboard')" onclick="clickPlace('breadboard')">  <span class="pitem-ico"><img src="/assets/tinkercad/breadboard.png"></span><span class="pitem-name">Breadboard</span></div>
       <div class="pitem" draggable="true" data-type="battery" ondragstart="ds(event,'battery')" onclick="clickPlace('battery')">  <span class="pitem-ico"><img src="/assets/tinkercad/battery.png"></span><span class="pitem-name">9V Battery</span></div>
     </div>
+    <!-- Properties Panel -->
+    <div id="properties-panel" style="display:none; border-top: 1px solid var(--line); flex-shrink: 0; background: var(--bg2); padding: 12px; font-family: var(--sans);">
+      <div style="font-weight: 600; margin-bottom: 8px; color: var(--text); font-size: 13px;">Properties</div>
+      <div id="prop-body" style="font-size: 12px; color: var(--text2); display: flex; flex-direction: column; gap: 8px;">
+        <!-- dynamic fields -->
+      </div>
+    </div>
   </div>
 
   <!-- CENTER: Circuit Canvas -->
@@ -2618,7 +2625,10 @@ function generateCodeFromWorkspace() {
 
 function place(type,x,y){
   const id='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-  const c={id,type,x,y};
+  const props = {};
+  if (type === 'res') props.resistance = 220;
+  if (type === 'dht22') { props.temp = 24.0; props.hum = 60.0; }
+  const c={id,type,x,y,props};
   comps.push(c);
   renderComp(c);
   hideHint();
@@ -2738,6 +2748,69 @@ function sel(id){
   document.querySelectorAll('.pcomp').forEach(e=>e.classList.remove('selected'));
   selId=id;
   if(id){const el=document.getElementById('pc-'+id);if(el)el.classList.add('selected')}
+  updatePropertiesPanel(id);
+}
+
+function updatePropertiesPanel(id) {
+  const panel = document.getElementById('properties-panel');
+  const body = document.getElementById('prop-body');
+  if (!id) { panel.style.display = 'none'; return; }
+  const c = comps.find(x => x.id === id);
+  if (!c || !['res', 'dht22'].includes(c.type)) { panel.style.display = 'none'; return; }
+  
+  if (!c.props) c.props = {};
+  panel.style.display = 'block';
+  body.innerHTML = '';
+
+  if (c.type === 'res') {
+    if (typeof c.props.resistance === 'undefined') c.props.resistance = 220;
+    body.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span>Resistance:</span>
+        <div style="display:flex; gap:4px; width:100px;">
+          <input type="number" id="prop-res-val" value="${c.props.resistance >= 1000 ? c.props.resistance/1000 : c.props.resistance}" style="width:50px; background:var(--bg3); color:var(--text); border:1px solid var(--line2); border-radius:4px; padding:2px 4px;">
+          <select id="prop-res-unit" style="background:var(--bg3); color:var(--text); border:1px solid var(--line2); border-radius:4px; flex:1;">
+            <option value="1" ${c.props.resistance < 1000 ? 'selected' : ''}>Ω</option>
+            <option value="1000" ${c.props.resistance >= 1000 ? 'selected' : ''}>kΩ</option>
+          </select>
+        </div>
+      </div>
+    `;
+    const updateRes = () => {
+      const val = parseFloat(document.getElementById('prop-res-val').value) || 0;
+      const mult = parseInt(document.getElementById('prop-res-unit').value);
+      c.props.resistance = val * mult;
+      updateLiveCode();
+      triggerAutoSync();
+    };
+    document.getElementById('prop-res-val').addEventListener('input', updateRes);
+    document.getElementById('prop-res-unit').addEventListener('change', updateRes);
+  }
+  
+  if (c.type === 'dht22') {
+    if (typeof c.props.temp === 'undefined') c.props.temp = 24.0;
+    if (typeof c.props.hum === 'undefined') c.props.hum = 60.0;
+    body.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <div style="display:flex; justify-content:space-between;"><span>Temperature:</span> <span id="prop-temp-lbl">${c.props.temp}°C</span></div>
+        <input type="range" id="prop-temp-val" min="-40" max="80" step="0.5" value="${c.props.temp}">
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between;"><span>Humidity:</span> <span id="prop-hum-lbl">${c.props.hum}%</span></div>
+        <input type="range" id="prop-hum-val" min="0" max="100" step="1" value="${c.props.hum}">
+      </div>
+    `;
+    const updateDHT = () => {
+      c.props.temp = parseFloat(document.getElementById('prop-temp-val').value);
+      c.props.hum = parseFloat(document.getElementById('prop-hum-val').value);
+      document.getElementById('prop-temp-lbl').textContent = c.props.temp + '°C';
+      document.getElementById('prop-hum-lbl').textContent = c.props.hum + '%';
+      if (typeof updateSimulatedSensors === 'function') updateSimulatedSensors(c);
+      triggerAutoSync();
+    };
+    document.getElementById('prop-temp-val').addEventListener('input', updateDHT);
+    document.getElementById('prop-hum-val').addEventListener('input', updateDHT);
+  }
 }
 
 function del(id){
@@ -3255,6 +3328,7 @@ function getSensorVal(type, cid) {
     s.soil   += (Math.random()-.5)*.5;
     s.lux    += (Math.random()-.5)*10;
   }
+
   s.temp   = Math.max(-40, Math.min(80, s.temp));
   s.hum    = Math.max(0,   Math.min(100, s.hum));
   s.dist   = Math.max(2,   Math.min(400, s.dist));
@@ -3272,6 +3346,16 @@ function getSensorVal(type, cid) {
     }
   }
   return s;
+}
+
+function updateSimulatedSensors(c) {
+  if(!sensorState[c.id]) getSensorVal(c.type, c.id);
+  const s = sensorState[c.id];
+  s.userControlled = true;
+  if (c.type === 'dht22') {
+    s.temp = c.props.temp;
+    s.hum = c.props.hum;
+  }
 }
 
 // Returns 0-1023 ADC value for a sensor type
