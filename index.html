@@ -3083,7 +3083,24 @@ async function toggleRun(){
 async function compileAndRun(){
   if(isCompiling) return;
   if(!comps.some(c=>BOARDS.includes(c.type))){
-    alert('Please place a microcontroller board (e.g., Arduino Uno) on the workspace first!');
+    // Start MCU-less simulation for basic circuits
+    running = true;
+    totalCycles = 0;
+    cpu = null;
+    avrADC = null;
+    avrPorts = {};
+    document.getElementById('run-btn').textContent='⏹ Stop';
+    document.getElementById('run-btn').classList.add('running');
+    setStatus('run','Running (No MCU)');
+    
+    let frameCount=0;
+    function dumbTick(){
+      if(!running) return;
+      frameCount++;
+      if(frameCount%20===0) tickSensors();
+      cpuTmr=requestAnimationFrame(dumbTick);
+    }
+    cpuTmr=requestAnimationFrame(dumbTick);
     return;
   }
   const code=getEditorValue();
