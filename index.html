@@ -703,6 +703,7 @@ body.light-mode #topbar {
         <h3>Drop components here</h3>
         <p>Drag from the left panel<br>
         Click pin → click pin to wire<br>
+        Click &amp; drag empty space to pan<br>
         <kbd style="background:var(--bg4);padding:1px 5px;border-radius:3px;border:1px solid var(--line);font-size:10px">Ctrl+Enter</kbd> to run</p>
       </div>
       <div class="zoom-controls">
@@ -2765,6 +2766,12 @@ function cmDown(e){
       const wy=(clickMy-py)/zoom;
       wirePoints.push({x:wx,y:wy});
       drawWires();
+      return;
+    } else if (e.button === 0) {
+      panning=true;
+      psx=e.clientX-px;
+      psy=e.clientY-py;
+      cw.style.cursor='grabbing';
       return;
     }
   }
