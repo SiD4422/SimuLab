@@ -20,6 +20,8 @@ const auth = require('./auth');
 auth.ensureDataDir();
 
 const app  = express();
+app.set('trust proxy', 1); // Trust the HTTPS proxy from Render/Heroku
+
 const PORT = process.env.PORT || 3080;
 const ROOT = __dirname;
 const STUBS = path.join(ROOT, 'simulab_stubs.h');
